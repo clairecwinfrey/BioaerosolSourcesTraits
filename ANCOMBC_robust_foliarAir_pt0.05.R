@@ -8,12 +8,11 @@
 
 # Results (10% samples and 0.05% of reads):
 # 16S:
-# — bioaerosol: 184 differentially abundant ASVs
+# — bioaerosol: 94 differentially abundant ASVs
 # — foliar: 126 differentially abundant ASVs
 
-# 
 # ITS: 
-# — biaerosol: 152 differentially abundant ASVs
+# — bioaerosol: 152 differentially abundant ASVs
 # — foliar: 243 differentially abundant ASVs
 
 ##################
@@ -646,12 +645,10 @@ length(airASVs_8occ.01pct_index_robust) #184
 bioaerosolI6S_0.01pct_ASVsNames <- I6S_BAFS_ancom_sigASVtab_t_robust$ASV_name[airASVs_8occ.01pct_index_robust]
 # Found in at least 8 samples and .05% of reads
 airASVs_8occ.05pct_index_robust <- intersect(intersect(which(I6S_BAFS_ancom_sigASVtab_t_robust$bioaerosolOcc >=8), which(I6S_BAFS_ancom_sigASVtab_t_robust$pctBioaerosol >=0.05)), which(I6S_BAFS_ancom_sigASVtab_t_robust$ANCOMcat == "bioaerosol"))
-length(airASVs_8occ.05pct_index_robust) #184
-# Found in at least 8 samples and .05% of reads
-airASVs_8occ.05pct_index_robust <- intersect(intersect(which(I6S_BAFS_ancom_sigASVtab_t_robust$bioaerosolOcc >=8), which(I6S_BAFS_ancom_sigASVtab_t_robust$pctBioaerosol >=0.05)), which(I6S_BAFS_ancom_sigASVtab_t_robust$ANCOMcat == "bioaerosol"))
-length(airASVs_8occ.05pct_index_robust) #184
+length(airASVs_8occ.05pct_index_robust) #94
 # View(I6S_BAFS_ancom_sigASVtab_t_robust[airASVs_8occ.05pct_index_robust,])
 bioaerosolI6S_0.05pct_ASVsNames <- I6S_BAFS_ancom_sigASVtab_t_robust$ASV_name[airASVs_8occ.05pct_index_robust]
+length(bioaerosolI6S_0.05pct_ASVsNames) #94
 
 ##### TEST FOLIAR SURFACE ####
 round(length(I6SphylloSampNames)/10) #6 samples
@@ -669,6 +666,7 @@ foliarASVs_6occ.05pct_index_robust <- intersect(intersect(which(I6S_BAFS_ancom_s
 length(foliarASVs_6occ.05pct_index_robust) #126
 # View(I6S_BAFS_ancom_sigASVtab_t_robust[foliarASVs_6occ.05pct_index_robust,])
 foliarI6S_0.05pct_ASVsNames <- I6S_BAFS_ancom_sigASVtab_t_robust$ASV_name[foliarASVs_6occ.05pct_index_robust]
+length(foliarI6S_0.05pct_ASVsNames) #126
 
 ###### PLOT AND EXPLORE NEW RESULTS! #####
 # GO with 0.05%
@@ -682,6 +680,7 @@ colnames(I6S_ANCOMall_.05pct_df)
 sort(I6S_ANCOMall_.05pct_df$pctBioaerosol[which(I6S_ANCOMall_.05pct_df$ANCOMcat == "bioaerosol")]) #minimum looks good!
 sort(I6S_ANCOMall_.05pct_df$pctFoliar[which(I6S_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")]) #minimum looks good!
 
+length(I6S_ANCOMall_.05pct_df$ASV_name) #220
 # Unique families and orders
 table(I6S_ANCOMall_.05pct_df$ANCOMcat, I6S_ANCOMall_.05pct_df$Order)
 
@@ -1457,6 +1456,7 @@ bioaerosolITS_0.01pct_ASVsNames <- ITS_BAFS_ancom_sigASVtab_t_robust$ASV_name[IT
 # View(ITS_BAFS_ancom_sigASVtab_t_robust[ITSairASVs_11occ.01pct_index_robust,])
 # View(ITS_BAFS_ancom_sigASVtab_t_robust[ITSairASVs_11occ.05pct_index_robust,])
 bioaerosolITS_0.05pct_ASVsNames <- ITS_BAFS_ancom_sigASVtab_t_robust$ASV_name[ITSairASVs_11occ.05pct_index_robust]
+length(bioaerosolITS_0.05pct_ASVsNames) #152
 ##### TEST FOLIAR SURFACE ####
 round(length(ITSphylloSampNames)/10) #6 samples
 # Found in at least 6 samples and at least 0.01% of reads
@@ -1465,6 +1465,7 @@ length(ITS_foliarASVs_6occ.01pct_index_robust) #735
 ITS_foliarASVs_6occ.05pct_index_robust <- intersect(intersect(which(ITS_BAFS_ancom_sigASVtab_t_robust$foliarSurfaceOcc >=6), which(ITS_BAFS_ancom_sigASVtab_t_robust$pctFoliar >=0.05)), which(ITS_BAFS_ancom_sigASVtab_t_robust$ANCOMcat == "foliar surface"))
 length(ITS_foliarASVs_6occ.05pct_index_robust) #243
 foliarITS_0.05pct_ASVsNames <- ITS_BAFS_ancom_sigASVtab_t_robust$ASV_name[ITS_foliarASVs_6occ.05pct_index_robust]
+length(foliarITS_0.05pct_ASVsNames) #243
 # View(ITS_BAFS_ancom_sigASVtab_t_robust[ITS_foliarASVs_6occ.05pct_index_robust,])
 # View(ITS_BAFS_ancom_sigASVtab_t_robust)
 
