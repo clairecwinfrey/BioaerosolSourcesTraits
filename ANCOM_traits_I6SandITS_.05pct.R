@@ -102,9 +102,10 @@ ITSairPhylloOnly.ps_meta <- as.data.frame(as.matrix(sample_data(ITSairPhylloOnly
 #   III. BACTERIA: EXPLORE ANCOM RESULTS (BIOAEROSOLS AND FOLIAR SURFACE) 
 ########################################################################
 ########### i. BACTERIA ###########
-
-####################################
-##### ANOTHER WAY OF SHOWING THE DATA: FACETED DOT PLOT ####
+##### FACETED DOT PLOT ####
+#### TRY FIRST WITH FAMILY ####
+# As calculated below, shows only 55/184 bioaerosol ASVs and 91/126 foliar surface ASVs, 
+# so perhaps not the most representative.
 # Get number of ASVs in each family
 # Try at family level, as Noah suggested
 numberFamsANCOM_I6S <- I6S_ANCOMall_.05pct_df %>% 
@@ -112,19 +113,26 @@ numberFamsANCOM_I6S <- I6S_ANCOMall_.05pct_df %>%
   summarise(ASVsInFamByHab = n_distinct(ASV_name), .groups = "drop") %>%  #.groups = "drop" no more grouping
   complete(ANCOMcat, Family, fill = list(ASVsInFamByHab = 0)) #add in zero if not found in that ANCOM cat
 # View(numberFamsANCOM_I6S)
-print(arrange(numberFamiliesANCOM_I6S, -ASVsInFamByHab), n= nrow(numberFamsANCOM_I6S))
+table(I6S_ANCOMall_.05pct_df$Family, I6S_ANCOMall_.05pct_df$ANCOMcat) #matches calculations above!
+print(arrange(numberFamsANCOM_I6S, -ASVsInFamByHab), n= nrow(numberFamsANCOM_I6S))
+length(I6S_ANCOMall_.05pct_df$ASV_name) #220
 # Get names of families that have at least 3 representatives in one family or the other
 fams3_I6S <- numberFamsANCOM_I6S$Family[which(numberFamsANCOM_I6S$ASVsInFamByHab >=3)]
+length(fams3_I6S)
 
 # Looks good!
 # View(numberFamsANCOM_I6S[numberFamsANCOM_I6S$Family %in% fams3_I6S,])
 I6S_3fam_df <- numberFamsANCOM_I6S[numberFamsANCOM_I6S$Family %in% fams3_I6S,]
 I6S_3fam_df <- I6S_3fam_df[-which(I6S_3fam_df$Family == "NA"),] #drop NA families
+dim(I6S_3fam_df)
 
-# Addphylum info to this plot by merging with subset of I6S_ANCOMall_.05pct_df that has phylum info! DO distinct because otherwise subset is v long and get many-to-many relationship
+# Add phylum info to this plot by merging with subset of I6S_ANCOMall_.05pct_df that has phylum info! DO distinct because otherwise subset is v long and get many-to-many relationship
 famPhylaI6S <- distinct(I6S_ANCOMall_.05pct_df[,colnames(I6S_ANCOMall_.05pct_df) %in% c("Family", "Phylum")])
 I6S_3fam_df <- left_join(I6S_3fam_df, famPhylaI6S, by = "Family")
 # View(I6S_3fam_df) # looks good!
+sum(I6S_3fam_df$ASVsInFamByHab) #shows 146/(184+126 = 310 diff abund ASVs)
+sum(I6S_3fam_df$ASVsInFamByHab[which(I6S_3fam_df$ANCOMcat == "foliar surface")]) #91/126 foliar surface ASVs
+sum(I6S_3fam_df$ASVsInFamByHab[which(I6S_3fam_df$ANCOMcat == "bioaerosol")]) #55/184 biaoerosol ASVs
 
 # Re-order families (making it a factor) based on alphabetical in phylum than in family
 I6S_3fam_df <- I6S_3fam_df %>%
@@ -151,7 +159,7 @@ I6S_3famANCOM_bubPlot <- ggplot(I6S_3fam_df_no0s,
   facet_grid(Family ~ ., scales = "free_y", space = "free_y", switch = "y", as.table = FALSE) + #as.table = FALSE orders by factor
   scale_x_continuous(
     breaks = 1:2,  # positions of the categories
-    labels = levels(factor(I6S_2fam_df$ANCOMcat)),
+    labels = levels(factor(I6S_3fam_df$ANCOMcat)),
     expand = expansion(mult = c(0.0, 0.0)),
     limits = c(0.2, 3)  # pull the two categories closer together
   ) +
@@ -161,7 +169,7 @@ I6S_3famANCOM_bubPlot <- ggplot(I6S_3fam_df_no0s,
     strip.placement = "outside",                 # put strips on the outer side (left)
     strip.text.y.right = element_text(angle = 0, hjust = 1, size =9, color= "black"),  # control orientation
     strip.background = element_blank(),
-    panel.spacing.y = unit(0.1, "lines"),
+    panel.spacing.y = unit(0.01, "lines"),
     strip.text.y.left = element_text(angle = 0, hjust = 1, size =5, color= "black"),
     axis.text.x = element_text(size = 10, color = "black"),
     # Legend layout (stack the two guides)
@@ -205,13 +213,210 @@ I6S_3famANCOM_bubPlot <- ggplot(I6S_3fam_df_no0s,
   #     )
   #   )
   # )
-quartz(width = 6, height = 7)
+#quartz(width = 6, height = 7)
 I6S_3famANCOM_bubPlot
 
 I6S_3famANCOM_bubPlot #
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
 
+
+#### CLASS ####
+# (Benefits versus Class: shows more of the diff abund. ASVs and matches heat maps)
+# 1. Get number of ASVs in each Class
+numberClassesANCOM_I6S <- I6S_ANCOMall_.05pct_df %>% 
+  group_by(ANCOMcat, Class) %>% 
+  summarise(ASVsInClassByHab = n_distinct(ASV_name), .groups = "drop") %>%  #.groups = "drop" no more grouping
+  complete(ANCOMcat, Class, fill = list(ASVsInClassByHab = 0)) #add in zero if not found in that ANCOM cat
+# View(numberClassesANCOM_I6S)
+# Check calculations
+table(I6S_ANCOMall_.05pct_df$Class, I6S_ANCOMall_.05pct_df$ANCOMcat) #these match the calculations above!
+unique(I6S_ANCOMall_.05pct_df$Class) #only 17, which maybe could fit except some are very ASV-rich so bubbles likely too big
+sum(numberClassesANCOM_I6S$ASVsInClassByHab) #220
+sum(numberClassesANCOM_I6S$ASVsInClassByHab) == length(unique(I6S_ANCOMall_.05pct_df$ASV_name)) #220
+
+print(arrange(numberClassesANCOM_I6S, -ASVsInClassByHab), n= nrow(numberClassesANCOM_I6
+# Looks good!
+
+allnumberClassesANCOM_I6S <- numberClassesANCOM_I6S[-which(numberClassesANCOM_I6S$Class == "NA"),] #drop NA classes
+dim(allnumberClassesANCOM_I6S)
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab) #shows 215/220
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "foliar surface")]) #123/___ foliar surface ASVs
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "bioaerosol")]) #92/___ biaoerosol ASVs
+
+# Add phylum info to this plot by merging with subset of I6S_ANCOMall_.05pct_df that has phylum info! DO distinct because otherwise subset is v long and get many-to-many relationship
+classPhylaI6S <- distinct(I6S_ANCOMall_.05pct_df[,colnames(I6S_ANCOMall_.05pct_df) %in% c("Class", "Phylum")])
+allnumberClassesANCOM_I6S <- left_join(allnumberClassesANCOM_I6S, classPhylaI6S, by = "Class")
+# View(allnumberClassesANCOM_I6S) # looks good!
+
+# Re-order classes (making it a factor) based on alphabetical in phylum than in Class
+allnumberClassesANCOM_I6S <- allnumberClassesANCOM_I6S %>%
+  arrange(desc(Phylum), desc(Class)) %>%  #alphabetic by Phylum, then Class, descending so that it goes up y-axis
+  mutate(Class = factor(Class, levels = unique(Class))) 
+# View(allnumberClassesANCOM_I6S) #Looks good!
+allnumberClassesANCOM_I6S$Class
+unique(allnumberClassesANCOM_I6S$Class)
+levels(allnumberClassesANCOM_I6S$Class)
+
+# Now remove those with 0 so that there are no dots for zero (had to have these zeros first to avoid arranging by ANCOMcat)
+allnumberClassesANCOM_I6S_no0s <- allnumberClassesANCOM_I6S[-which(allnumberClassesANCOM_I6S$ASVsInClassByHab == 0),]
+# View(allnumberClassesANCOM_I6S_no0s)
+levels(allnumberClassesANCOM_I6S_no0s$Class) #great kept levels!
+# Make this numeric to squeeze left and right dots closer together
+allnumberClassesANCOM_I6S_no0s$xpos <- as.numeric(factor(allnumberClassesANCOM_I6S_no0s$ANCOMcat))
+
+# Make the plot!
+colnames(allnumberClassesANCOM_I6S_no0s)
+I6S_allClassANCOM_bubPlot <- ggplot(allnumberClassesANCOM_I6S_no0s,
+                                  aes(x = xpos, y = Class, size = ASVsInClassByHab, fill = ANCOMcat)) +
+  geom_point(shape = 21, color = "black", stroke = 0.3) +
+  scale_size(range = c(1, 6)) +   
+  facet_grid(Class ~ ., scales = "free_y", space = "free_y", switch = "y", as.table = FALSE) + #as.table = FALSE orders by factor
+  scale_x_continuous(
+    breaks = 1:2,  # positions of the categories
+    labels = levels(factor(allnumberClassesANCOM_I6S$ANCOMcat)),
+    expand = expansion(mult = c(0.0, 0.0)),
+    limits = c(0.2, 3)  # pull the two categories closer together
+  ) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(color = "white", fill = NA, linewidth = 0.5),
+    strip.placement = "outside",                 # put strips on the outer side (left)
+    strip.text.y.right = element_text(angle = 0, hjust = 1, size =9, color= "black"),  # control orientation
+    strip.background = element_blank(),
+    panel.spacing.y = unit(0.01, "lines"),
+    strip.text.y.left = element_text(angle = 0, hjust = 1, size =5, color= "black"),
+    axis.text.x = element_text(size = 10, color = "black"),
+    # Legend layout (stack the two guides)
+    legend.position = "bottom",
+    legend.box = "vertical",
+    legend.direction = "horizontal",
+    legend.justification = "left",
+    legend.box.just = "left",
+    axis.text = element_text(color = "black"),
+    legend.title = element_text(size = 8, color= "black"),
+    legend.text  = element_text(size = 8, color= "black"),
+    legend.box.margin = margin(0, 0, 0, 0),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.spacing = unit(0.1, "lines"),
+    # Center titles above legend
+    legend.title.position = "top",
+    legend.title.align = 0.5,
+    panel.grid = element_blank()
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    size = "Number of ASVs in Class"
+  ) +
+  # Change bubble colors
+  scale_fill_manual(
+    values = c("cornflowerblue", "forestgreen") #color bioaerosol bubbles blue and foliar surface green
+  ) +
+  guides(fill = "none") #remove fill legend for ANCOMcat
+#quartz(width = 6, height = 7)
+I6S_allClassANCOM_bubPlot
+# NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
+# MANUALLY DO THESE THINGS IN POWERPOINT
+
+#### CLASS ####
+# (Benefits versus Class: shows all of the diff abund. ASVs and matches heat maps)
+# 1. Get number of ASVs in each Class
+numberClassesANCOM_I6S <- I6S_ANCOMall_.05pct_df %>% 
+  group_by(ANCOMcat, Class) %>% 
+  summarise(ASVsInClassByHab = n_distinct(ASV_name), .groups = "drop") %>%  #.groups = "drop" no more grouping
+  complete(ANCOMcat, Class, fill = list(ASVsInClassByHab = 0)) #add in zero if not found in that ANCOM cat
+# View(numberClassesANCOM_I6S)
+# Check calculations
+table(I6S_ANCOMall_.05pct_df$Class, I6S_ANCOMall_.05pct_df$ANCOMcat) #these match the calculations above!
+unique(I6S_ANCOMall_.05pct_df$Class) #only 17, which maybe could fit except some are very ASV-rich so bubbles likely too big
+sum(numberClassesANCOM_I6S$ASVsInClassByHab) #220
+sum(numberClassesANCOM_I6S$ASVsInClassByHab) == length(unique(I6S_ANCOMall_.05pct_df$ASV_name)) #220
+
+# Looks good!
+
+allnumberClassesANCOM_I6S <- numberClassesANCOM_I6S[-which(numberClassesANCOM_I6S$Class == "NA"),] #drop NA classes
+dim(allnumberClassesANCOM_I6S)
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab) #shows 215/220
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "foliar surface")]) #123/___ foliar surface ASVs
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "bioaerosol")]) #92/___ biaoerosol ASVs
+
+# Add phylum info to this plot by merging with subset of I6S_ANCOMall_.05pct_df that has phylum info! DO distinct because otherwise subset is v long and get many-to-many relationship
+classPhylaI6S <- distinct(I6S_ANCOMall_.05pct_df[,colnames(I6S_ANCOMall_.05pct_df) %in% c("Class", "Phylum")])
+allnumberClassesANCOM_I6S <- left_join(allnumberClassesANCOM_I6S, classPhylaI6S, by = "Class")
+# View(allnumberClassesANCOM_I6S) # looks good!
+
+# Re-order classes (making it a factor) based on alphabetical in phylum than in Class
+allnumberClassesANCOM_I6S <- allnumberClassesANCOM_I6S %>%
+  arrange(desc(Phylum), desc(Class)) %>%  #alphabetic by Phylum, then Class, descending so that it goes up y-axis
+  mutate(Class = factor(Class, levels = unique(Class))) 
+# View(allnumberClassesANCOM_I6S) #Looks good!
+allnumberClassesANCOM_I6S$Class
+unique(allnumberClassesANCOM_I6S$Class)
+levels(allnumberClassesANCOM_I6S$Class)
+
+# Now remove those with 0 so that there are no dots for zero (had to have these zeros first to avoid arranging by ANCOMcat)
+allnumberClassesANCOM_I6S_no0s <- allnumberClassesANCOM_I6S[-which(allnumberClassesANCOM_I6S$ASVsInClassByHab == 0),]
+# View(allnumberClassesANCOM_I6S_no0s)
+levels(allnumberClassesANCOM_I6S_no0s$Class) #great kept levels!
+# Make this numeric to squeeze left and right dots closer together
+allnumberClassesANCOM_I6S_no0s$xpos <- as.numeric(factor(allnumberClassesANCOM_I6S_no0s$ANCOMcat))
+
+# Make the plot!
+colnames(allnumberClassesANCOM_I6S_no0s)
+I6S_allClassANCOM_bubPlot <- ggplot(allnumberClassesANCOM_I6S_no0s,
+                                    aes(x = xpos, y = Class, size = ASVsInClassByHab, fill = ANCOMcat)) +
+  geom_point(shape = 21, color = "black", stroke = 0.3) +
+  scale_size(range = c(1, 6)) +   
+  facet_grid(Class ~ ., scales = "free_y", space = "free_y", switch = "y", as.table = FALSE) + #as.table = FALSE orders by factor
+  scale_x_continuous(
+    breaks = 1:2,  # positions of the categories
+    labels = levels(factor(allnumberClassesANCOM_I6S$ANCOMcat)),
+    expand = expansion(mult = c(0.0, 0.0)),
+    limits = c(0.2, 3)  # pull the two categories closer together
+  ) +
+  theme_bw() +
+  theme(
+    panel.border = element_rect(color = "white", fill = NA, linewidth = 0.5),
+    strip.placement = "outside",                 # put strips on the outer side (left)
+    strip.text.y.right = element_text(angle = 0, hjust = 1, size =9, color= "black"),  # control orientation
+    strip.background = element_blank(),
+    panel.spacing.y = unit(0.01, "lines"),
+    strip.text.y.left = element_text(angle = 0, hjust = 1, size =5, color= "black"),
+    axis.text.x = element_text(size = 10, color = "black"),
+    # Legend layout (stack the two guides)
+    legend.position = "bottom",
+    legend.box = "vertical",
+    legend.direction = "horizontal",
+    legend.justification = "left",
+    legend.box.just = "left",
+    axis.text = element_text(color = "black"),
+    legend.title = element_text(size = 8, color= "black"),
+    legend.text  = element_text(size = 8, color= "black"),
+    legend.box.margin = margin(0, 0, 0, 0),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.spacing = unit(0.1, "lines"),
+    # Center titles above legend
+    legend.title.position = "top",
+    legend.title.align = 0.5,
+    panel.grid = element_blank()
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    size = "Number of ASVs in Class"
+  ) +
+  # Change bubble colors
+  scale_fill_manual(
+    values = c("cornflowerblue", "forestgreen") #color bioaerosol bubbles blue and foliar surface green
+  ) +
+  guides(fill = "none") #remove fill legend for ANCOMcat
+#quartz(width = 6, height = 7)
+I6S_allClassANCOM_bubPlot
+
+I6S_allClassANCOM_bubPlot #
+# NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE SECOND SET OF PANEL LABELS ALONG Y AXIS, SO I WILL
+# MANUALLY DO THESE THINGS IN POWERPOINT
 
 ########################################################################
 #   IV. FUNGI: EXPLORE ANCOM RESULTS (BIOAEROSOLS AND FOLIR SURFACE) 
