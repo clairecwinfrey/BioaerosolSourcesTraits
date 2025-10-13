@@ -5,7 +5,7 @@
 # differentially abundant taxa in the open patch versus the forested matrix habitat. Crucially, the tests look for habitat 
 # differences, while also having nested random effects of date sampled within EU. The criteria for considering a differentially
 # abundant taxon, whether a structural or "main" ANCOM zero, is that it must occur in at least 10% of samples and comprise at least 
-# 0.01% of reads from the respective group.
+# 0.05% of reads from the respective group.
 
 ##################
 # I. SET-UP 
@@ -201,9 +201,9 @@ length(I6SsavAirNames) #38 samples
 I6StotReadsForAir <- sum(unname(colSums(I6Sair_notR_ASVsTab[,colnames(I6Sair_notR_ASVsTab) %in% I6SForAirNames]))) # 885063
 length(I6SForAirNames) #46 samples
 
-# Look at what getting 0.0001 or 0.01% of reads would be about. Do it this way since forest had more reads and more samples
-0.0001*I6StotReadsSavAir # needs to occur roughly 69 times in savanna 
-0.0001*I6StotReadsForAir # needs to occur roughly 89 times in forest
+# Look at what getting 0.0005 or 0.05% of reads would be about (or 5 out of every 10,000 reads). Do it this way since forest had more reads and more samples
+round(0.0005*I6StotReadsSavAir) # needs to occur roughly 346 times in savanna 
+round(0.0005*I6StotReadsForAir) # needs to occur roughly 443 times in forest
 
 # Add in percent that each ASV comprises
 I6S_airHab_ancom_sigASVtab_t <- I6S_airHab_ancom_sigASVtab_t %>% 
@@ -212,15 +212,15 @@ I6S_airHab_ancom_sigASVtab_t <- I6S_airHab_ancom_sigASVtab_t %>%
 
 # DECISION AND FILTERING TIME:
 # 1. To be considered diff. abundant, an ASV must be in at about 10% of respective group's samples (4 savanna or 5 forest) AND
-# 2. Must be present at a certain threshold (see ways I've tried this below)
+# 2. Must be present at a certain threshold (0.05% of reads)
 colnames(I6S_airHab_ancom_sigASVtab_t)
 ##### AIR SAVANNA ####
 round(length(I6SsavAirNames)/10) #4 samples 
-# Found in at least 4 samples and .01% of reads
-savAir_I6S4occ.01pct_Index <- intersect(intersect(which(I6S_airHab_ancom_sigASVtab_t$savAirOcc >=4), which(I6S_airHab_ancom_sigASVtab_t$pctSavAir >=0.01)), which(I6S_airHab_ancom_sigASVtab_t$ANCOMcat == "open patch"))
-length(savAir_I6S4occ.01pct_Index) #8
-# View(I6S_airHab_ancom_sigASVtab_t[savAir_I6S4occ.01pct_Index,])
-I6SsavAirOnlyASVNames <- I6S_airHab_ancom_sigASVtab_t$ASV_name[savAir_I6S4occ.01pct_Index]
+# Found in at least 4 samples and .05% of reads
+savAir_I6S4occ.05pct_Index <- intersect(intersect(which(I6S_airHab_ancom_sigASVtab_t$savAirOcc >=4), which(I6S_airHab_ancom_sigASVtab_t$pctSavAir >=0.05)), which(I6S_airHab_ancom_sigASVtab_t$ANCOMcat == "open patch"))
+length(savAir_I6S4occ.05pct_Index) #6
+# View(I6S_airHab_ancom_sigASVtab_t[savAir_I6S4occ.05pct_Index,])
+I6SsavAirOnlyASVNames <- I6S_airHab_ancom_sigASVtab_t$ASV_name[savAir_I6S4occ.05pct_Index]
 # Which samples did these occur in?
 sampColsI6S_airHab <- c(2:85) #these are the columns with data, which is important for thing below
 I6SsavAirOnlySamplesList <- vector("list", length = length(I6SsavAirOnlyASVNames))
@@ -241,20 +241,61 @@ sampsI6S_ASV_1565 <- as.vector(I6SsavAirOnlySamplesList$ASV_1565)
 sample_data(I6S_airOnly_notR_ANCOM.ps)$DateSetOut[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_1565] #"30-Jun-2022" "18-Jun-2022" "18-Jun-2022" "18-Jun-2022"
 sample_data(I6S_airOnly_notR_ANCOM.ps)$TransectMeter[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_1565] #"R0" "B0" "L0" "T0" 
 sample_data(I6S_airOnly_notR_ANCOM.ps)$EU[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_1565] #"EU_54S" "EU_52"  "EU_52"  "EU_52" 
+I6S_airHab_ancom_sigASVtab_t[I6S_airHab_ancom_sigASVtab_t$ASV_name %in% "ASV_1565", colnames(I6S_airHab_ancom_sigASVtab_t) %in% sampsI6S_ASV_1565]
+# LOADED in 118
+#     air_16S_118 air_16S_150 air_16S_39 air_16S_86
+#     1308           2          2          1
+sum(I6S_airHab_ancom_sigASVtab_t[,colnames(I6S_airHab_ancom_sigASVtab_t) %in% "air_16S_118"]) #1308/2665
+1308/sum(I6S_airHab_ancom_sigASVtab_t[,colnames(I6S_airHab_ancom_sigASVtab_t) %in% "air_16S_118"])*100 # = 49.1% in this one sample!!
 
-# Not really a pattern with Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium are from same day very close together (EU 52 near center of patch on June 18)
+# Not really a pattern with Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium 
 sampsI6S_ASV_2271 <- as.vector(I6SsavAirOnlySamplesList$ASV_2271)
 sample_data(I6S_airOnly_notR_ANCOM.ps)$DateSetOut[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_2271] #""29-Jun-2022" "22-Jun-2022" "18-Jun-2022" "18-Jun-2022"
 sample_data(I6S_airOnly_notR_ANCOM.ps)$TransectMeter[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_2271] #"B0" "L0" "L0" "T0"
 sample_data(I6S_airOnly_notR_ANCOM.ps)$EU[rownames(sample_data(I6S_airOnly_notR_ANCOM.ps)) %in% sampsI6S_ASV_2271] #"EU_8"   "EU_53S" "EU_52"  "EU_52" 
+I6S_airHab_ancom_sigASVtab_t[I6S_airHab_ancom_sigASVtab_t$ASV_name %in% "ASV_2271", colnames(I6S_airHab_ancom_sigASVtab_t) %in% sampsI6S_ASV_2271]
+#       air_16S_154 air_16S_33 air_16S_39 air_16S_86
+#           6        383          2          1
+
+# Other four ASVs
+# "ASV_161": Verruco in Candidatus Xiphinematobacter
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SsavAirOnlySamplesList)[1]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SsavAirOnlySamplesList[[1]])]
+#   air_16S_108 air_16S_118 air_16S_132 air_16S_86
+#         292           1         168          1
+
+# "ASV_244" Acidobacteriota in Pyrinomonadaceae, RB41 genus
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SsavAirOnlySamplesList)[2]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SsavAirOnlySamplesList[[2]])]
+#   air_16S_1 air_16S_150 air_16S_2 air_16S_38 air_16S_39
+#         51         114         1        126         65
+
+# "ASV_2396" Actino, Streptomycetaceae, Streptacidiphilus
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SsavAirOnlySamplesList)[5]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SsavAirOnlySamplesList[[5]])]
+# # air_16S_108 air_16S_132 air_16S_150 air_16S_2 air_16S_38 air_16S_46 air_16S_65
+#         103           1         287         3          2         87          8
+
+# ASV_3495: Bacteroidota,  Hymenobacteraceae, Hymenobacter
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SsavAirOnlySamplesList)[6]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SsavAirOnlySamplesList[[6]])]
+# air_16S_130 air_16S_132 air_16S_143 air_16S_150 air_16S_65
+#           1           1         527           1          1
+
+# Summary of these: ASV_1565 [Ruminococcus] torques group. 3/4 samples from one day, close to each other. However, very rare except nearly 50% of reads
+# in one sample, presumably a pig pooped nearby.
+# Maybe of interest: "ASV_244" Acidobacteriota in Pyrinomonadaceae, RB41 genus and "ASV_2396" Actino, Streptomycetaceae, Streptacidiphilus. Found in good amounts in
+# 3-4 samples
+# Likely not of interest: "ASV_161": Verruco in Candidatus Xiphinematobacter found 2 times in at least 168 samples, but then only 1 in other two
+# Not of interest: ASV_2271 (Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium) and ASV_3495: Bacteroidota,  Hymenobacteraceae, Hymenobacter. In one of samples, found at least 383 times, rest no more than 6. Not very interesting
 
 ##### FOREST AIR ####
 round(length(I6SForAirNames)/10) #5 samples
-# Found in at least 5 samples and at least 0.01% of reads
-forAir_I6S5occ.01pct_Index <- intersect(intersect(which(I6S_airHab_ancom_sigASVtab_t$forestAirOcc >=5), which(I6S_airHab_ancom_sigASVtab_t$pctForAir >=0.01)), which(I6S_airHab_ancom_sigASVtab_t$ANCOMcat == "forested matrix"))
-length(forAir_I6S5occ.01pct_Index) #8
-# View(I6S_airHab_ancom_sigASVtab_t[forAir_I6S5occ.01pct_Index,])
-I6SforAirOnlyASVNames <- I6S_airHab_ancom_sigASVtab_t$ASV_name[forAir_I6S5occ.01pct_Index]
+# Found in at least 5 samples and at least 0.05% of reads
+forAir_I6S5occ.05pct_Index <- intersect(intersect(which(I6S_airHab_ancom_sigASVtab_t$forestAirOcc >=5), which(I6S_airHab_ancom_sigASVtab_t$pctForAir >=0.05)), which(I6S_airHab_ancom_sigASVtab_t$ANCOMcat == "forested matrix"))
+length(forAir_I6S5occ.05pct_Index) #3
+# View(I6S_airHab_ancom_sigASVtab_t[forAir_I6S5occ.05pct_Index,])
+# 3 ASVs: 
+# ASV_1088: Proteobacteria, Alphaproteobacteria, Caulobacterales, Caulobacteraceae. 
+# ASV_1319: Proteobacteria (all else NA), Actinobacteriota, Actinobacteria, Frankiales
+# ASV_1599: Proteobacteria, all the rest unclassified
+I6SforAirOnlyASVNames <- I6S_airHab_ancom_sigASVtab_t$ASV_name[forAir_I6S5occ.05pct_Index]
 # Which samples did these occur in?
 sampColsI6S_airHab <- c(2:85) #these are the columns with data, which is important for thing below
 I6SforAirOnlySamplesList <- vector("list", length = length(I6SforAirOnlyASVNames))
@@ -269,6 +310,23 @@ which(I6S_airHab_ancom_sigASVtab_t[I6S_airHab_ancom_sigASVtab_t$ASV_name %in% na
 # Confirmed that these are the samples that names(I6SforAirOnlySamplesList)[1], "ASV_1088", occurs in
 colnames(I6S_airHab_ancom_sigASVtab_t[,sampColsI6S_airHab])[which(I6S_airHab_ancom_sigASVtab_t[I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SforAirOnlySamplesList)[1],sampColsI6S_airHab]>0)]
 I6SforAirOnlySamplesList[[1]]
+
+# ASV_1088
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SforAirOnlySamplesList)[1]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SforAirOnlySamplesList[[1]])]
+# air_16S_103 air_16S_105 air_16S_28 air_16S_72 air_16S_88
+#       387           5          1         99        152
+# ASV_1319
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SforAirOnlySamplesList)[2]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SforAirOnlySamplesList[[2]])]
+# air_16S_149 air_16S_36 air_16S_49 air_16S_60 air_16S_72
+#        1576          1          1          1          1
+# ASV_1599
+I6S_airHab_ancom_sigASVtab_t[which(I6S_airHab_ancom_sigASVtab_t$ASV_name %in% names(I6SforAirOnlySamplesList)[3]), which(colnames(I6S_airHab_ancom_sigASVtab_t) %in% I6SforAirOnlySamplesList[[3]])]
+# air_16S_127 air_16S_141 air_16S_145 air_16S_54 air_16S_90
+#         1273           1           1          1          5
+
+# Summary of "forested matrix only": ASV_1319 (Frankiales) and ASV_1599 (unknown Proteobacterium) occur at least 1200 in one sample,
+# with the other 4 samples having it 5 times or fewer. The only one of interest, ASV_1088 (Caulobacteraceae), found in 5 samples. 3 of 
+# these samples at least 99 times, two 5 or fewer reads. 
 
 #####################################
 # III. FUNGI: ANCOM FOR OPEN PATCH VERSUS FORESTED MATRIX
@@ -314,10 +372,11 @@ ITSForAirNames <- rownames(sample_data(ITS_airOnly_notR_ANCOM.ps))[which(sample_
 # 2. FUNGI: differences between habitats
 # Need nested random effects of sampling day (DateSetOut is equivalent) within EU.  
 sort(colnames(sample_data(ITS_airOnly_notR_ANCOM.ps)))
+head(tax_table(ITS_airOnly_notR_ANCOM.ps))
 sample_data(ITS_airOnly_notR_ANCOM.ps)$DateSetOut
 set.seed(121)
 # Grayed out since takes a while, but code works great!
-ITS_habitatAir_nonR_ANCOM <- ancombc2(data = ITS_airOnly_notR_ANCOM.ps, group = "HabitatAir", tax_level = "Species", fix_formula = "HabitatAir", rand_formula = "(1|EU/DateSetOut)", struc_zero = TRUE, neg_lb = FALSE) #FUNGI
+#ITS_habitatAir_nonR_ANCOM <- ancombc2(data = ITS_airOnly_notR_ANCOM.ps, group = "HabitatAir", tax_level = "Species", fix_formula = "HabitatAir", rand_formula = "(1|EU/DateSetOut)", struc_zero = TRUE, neg_lb = FALSE) #FUNGI
 
 # Saved/run October 8, 2025
 # (Re-run because Species was not ASV_name, which I need for below)
@@ -325,65 +384,6 @@ ITS_habitatAir_nonR_ANCOM <- ancombc2(data = ITS_airOnly_notR_ANCOM.ps, group = 
 class(ITS_habitatAir_nonR_ANCOM)
 
 # Look at results:
-# Load if need be
-#ITS_habitatAir_nonR_ANCOM <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ITS_habitatAir_nonR_ANCOM_Oct8-2025_2.rds")
-# Shows that no taxa were differentially abundant but that all passed sensitivity analysis (so pseudo count addition which ANOCMBC2 uses is okay)
-unique(ITS_habitatAir_nonR_ANCOM$res$diff_HabitatAirsavanna) #no differentially abundant taxa
-unique(ITS_habitatAir_nonR_ANCOM$res$`passed_ss_(Intercept)`) #all passed sensitivity analysis
-unique(ITS_habitatAir_nonR_ANCOM$res$passed_ss_HabitatAirsavanna) #all passed sensitivity analysis
-# View(ITS_habitatAir_nonR_ANCOM$zero_ind)
-
-# ii. FUNGI
-# Right now, there is a Species level, but some are NAs which is no good in the taxonomy table.
-# So I will change all species to ASV name, as with bacteria and then check for species information again later
-colnames(tax_table(airITS_8.5K.ps)) #in correct order
-head(tax_table(airITS_8.5K.ps))
-
-# Make a copy to edit
-ITS_airOnly_notR_taxSpecies <- as.data.frame(as.matrix(tax_table(airITS_8.5K.ps)))
-class(ITS_airOnly_notR_taxSpecies) #great, it's not a phyloseq object!
-head(ITS_airOnly_notR_taxSpecies)
-ITS_notR_ASVnames <- rownames(ITS_airOnly_notR_taxSpecies)
-ITS_airOnly_notR_taxSpecies$Species <- rownames(ITS_airOnly_notR_taxSpecies)
-head(ITS_airOnly_notR_taxSpecies)
-# Turn this new tax table into a tax table for phyloseq
-ITS_airOnly_notR_taxSpeciesForPS <- phyloseq::tax_table(ITS_airOnly_notR_taxSpecies)
-colnames(ITS_airOnly_notR_taxSpeciesForPS) <- c("Kingdom","Phylum","Class", "Order","Family","Genus", "Species")
-rownames(ITS_airOnly_notR_taxSpeciesForPS) <- ITS_notR_ASVnames #re-set rownames
-# View(ITS_airOnly_notR_taxSpeciesForPS)
-head(ITS_airOnly_notR_taxSpeciesForPS)
-class(ITS_airOnly_notR_taxSpeciesForPS)
-
-# Finally, re-make phyloseq object. Need to brute force this a bit since species made above arren't taking with jsut the merge.
-class(ITS_airOnly_notR_taxSpeciesForPS)
-ITS_airOnly_notR_ANCOM.ps <- merge_phyloseq(otu_table(airITS_8.5K.ps), sample_data(airITS_8.5K.ps), ITS_airOnly_notR_taxSpeciesForPS)
-tax_table(ITS_airOnly_notR_ANCOM.ps) #now looks correct!
-ITSair_notR_ASVsTab <- as.data.frame(as.matrix(otu_table(ITS_airOnly_notR_ANCOM.ps)))
-otu_table(ITS_airOnly_notR_ANCOM.ps)
-which(rowSums(ITSair_notR_ASVsTab)<1) #none of these ASVs are NOT found in the air!
-dim(ITSair_notR_ASVsTab) #5612 ASVs,  110 samples
-# Get the tax table to use later
-ITSairOnly_notR_taxaTab <- as.data.frame(as.matrix(tax_table(ITS_airOnly_notR_ANCOM.ps)))
-# Get sample names to use later
-ITSsavAirNames <- rownames(sample_data(ITS_airOnly_notR_ANCOM.ps))[which(sample_data(ITS_airOnly_notR_ANCOM.ps)$HabitatAir == "savanna")]
-sample_data(ITS_airOnly_notR_ANCOM.ps)$HabitatAir[rownames(sample_data(ITS_airOnly_notR_ANCOM.ps)) %in% ITSsavAirNames] #double check looks good
-ITSForAirNames <- rownames(sample_data(ITS_airOnly_notR_ANCOM.ps))[which(sample_data(ITS_airOnly_notR_ANCOM.ps)$HabitatAir == "forest")]
-
-# 2. FUNGI: differences between habitats
-# Need nested random effects of sampling day (DateSetOut is equivalent) within EU.  
-sort(colnames(sample_data(ITS_airOnly_notR_ANCOM.ps)))
-sample_data(ITS_airOnly_notR_ANCOM.ps)$DateSetOut
-head(tax_table(ITS_airOnly_notR_ANCOM.ps))
-set.seed(121)
-# Grayed out since takes a while, but code works great!
-ITS_habitatAir_nonR_ANCOM <- ancombc2(data = ITS_airOnly_notR_ANCOM.ps, group = "HabitatAir", tax_level = "Species", fix_formula = "HabitatAir", rand_formula = "(1|EU/DateSetOut)", struc_zero = TRUE, neg_lb = FALSE) #FUNGI
-
-# Saved/run October 1, 2025
-# Added _2 for setting seed
-# saveRDS(ITS_habitatAir_nonR_ANCOM, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ITS_habitatAir_nonR_ANCOM_Sept2025_2.rds")
-class(ITS_habitatAir_nonR_ANCOM)
-
-# FIRST PASS AT RESULTS: 
 # Load if need be
 ITS_habitatAir_nonR_ANCOM <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ITS_habitatAir_nonR_ANCOM_Oct8-2025.rds")
 # Shows that no taxa were differentially abundant but that all passed sensitivity analysis (so pseudo count addition which ANOCMBC2 uses is okay)
@@ -464,9 +464,9 @@ length(ITSsavAirNames) #51 samples
 ITStotReadsForAir <- sum(unname(colSums(ITSair_notR_ASVsTab[,colnames(ITSair_notR_ASVsTab) %in% ITSForAirNames]))); ITStotReadsForAir #2089457
 length(ITSForAirNames) #59 samples
 
-# Look at what getting 0.0001 or 0.01% of reads would be about. Do it this way since forest had more reads and more samples
-0.0001*ITStotReadsSavAir # needs to occur roughly 192 times in savanna 
-0.0001*ITStotReadsForAir # needs to occur roughly 209 times in forest
+# Look at what getting 0.0005 or 0.05% of reads would be about. Do it this way since forest had more reads and more samples
+round(0.0005*ITStotReadsSavAir) # needs to occur roughly 959 times in savanna 
+round(0.0005*ITStotReadsForAir) # needs to occur roughly 1045 times in forest
 
 # Add in percent that each ASV comprises
 ITS_airHab_ancom_sigASVtab_t <- ITS_airHab_ancom_sigASVtab_t %>% 
@@ -475,16 +475,16 @@ ITS_airHab_ancom_sigASVtab_t <- ITS_airHab_ancom_sigASVtab_t %>%
 
 # DECISION AND FILTERING TIME:
 # 1. To be considered diff. abundant, an ASV must be in at about 10% of respective group's samples (5 savanna or 6 forest) AND
-# 2. Must comprise at least 0.01% of reads in respective group
+# 2. Must comprise at least 0.05% of reads in respective group
 colnames(ITS_airHab_ancom_sigASVtab_t)
 ##### AIR SAVANNA ####
 round(length(ITSsavAirNames)/10) #5 samples 
-# Found in at least 5 samples and .01% of reads
-savAir_ITS5occ.01pct_Index <- intersect(intersect(which(ITS_airHab_ancom_sigASVtab_t$savAirOcc >=5), which(ITS_airHab_ancom_sigASVtab_t$pctSavAir >=0.01)), which(ITS_airHab_ancom_sigASVtab_t$ANCOMcat == "open patch"))
-length(savAir_ITS5occ.01pct_Index) #0 none detected
+# Found in at least 5 samples and .05% of reads
+savAir_ITS5occ.05pct_Index <- intersect(intersect(which(ITS_airHab_ancom_sigASVtab_t$savAirOcc >=5), which(ITS_airHab_ancom_sigASVtab_t$pctSavAir >=0.05)), which(ITS_airHab_ancom_sigASVtab_t$ANCOMcat == "open patch"))
+length(savAir_ITS5occ.05pct_Index) #0 none detected
 
 ##### FOREST AIR ####
 round(length(ITSForAirNames)/10) #6 samples
 # Found in at least 5 samples and at least 0.01% of reads
-forAir_ITS6occ.01pct_Index <- intersect(intersect(which(ITS_airHab_ancom_sigASVtab_t$forestAirOcc >=6), which(ITS_airHab_ancom_sigASVtab_t$pctForAir >=0.01)), which(ITS_airHab_ancom_sigASVtab_t$ANCOMcat == "forested matrix"))
-length(forAir_ITS6occ.01pct_Index) #0
+forAir_ITS6occ.05pct_Index <- intersect(intersect(which(ITS_airHab_ancom_sigASVtab_t$forestAirOcc >=6), which(ITS_airHab_ancom_sigASVtab_t$pctForAir >=0.05)), which(ITS_airHab_ancom_sigASVtab_t$ANCOMcat == "forested matrix"))
+length(forAir_ITS6occ.05pct_Index) #0
