@@ -133,7 +133,7 @@ min(ANCOM_ASVs_WithGTDB.90$numbMismatch) #0 mismatches
 unique(ANCOM_ASVs_WithGTDB.90$ASV_name) #161
 length(unique(ANCOM_ASVs_WithGTDB.90$ASV_name)) #161 ASVs (so removed one I think!)
 # What percentage of ASVs could I match? 
-length(unique(ANCOM_ASVs_WithGTDB.90$ASV_name))/length(I6S_airLeafANCOM$ASV_name)*100 #73.18182, so able to match 73.2%
+length(unique(ANCOM_ASVs_WithGTDB.90$ASV_name))/length(I6S_airLeafANCOM$ASV_name)*100 #73.18182, so able to match 73.2% 
 # Were there any Archaea?
 which(grepl(ANCOM_ASVs_WithGTDB.90$SILVAtaxonomy, pattern= "Archaea")== TRUE) #no Archaea!
 unique(ANCOM_ASVs_WithGTDB.90$SILVAtaxonomy) #only 152 unique here, even though 161 ASVs
@@ -256,7 +256,7 @@ length(unique(madinANCOMMatch$ASV_name)) #111 unique ASVs had either yes or no d
 unique(madinANCOMMatch$sporulation[which(is.na(madinANCOMMatch$sporulation) == FALSE)]) #double check, yes there are all 'yes' or 'no'
 # View(madinANCOMMatch)
 # What percentage of our ASVs had sporulation data in Madin?
-length(unique(madinANCOMMatch$ASV_name))/length(I6S_airLeafANCOM$ASV_name) *100 #50.45455 So, about 50.5%!, or 111/220 ASVs (as I said above!)
+length(unique(madinANCOMMatch$ASV_name))/length(I6S_airLeafANCOM$ASV_name) *100 #50.45455 So, about 50.5%!, or 111/220 ASVs (as I said above!) Added to manuscript
 #View(madinANCOMMatch)
 # Is it ever the case that an ASV (with multiple matches) has yes and no?
 colnames(madinANCOMMatch)
