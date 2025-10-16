@@ -1,7 +1,7 @@
 # ANCOM_traits_I6SandITS_Sept.R
 # Old version was called ANCOM_traits_I6SandITS.R. Old, old version was called DiffAbundTests_I6SandITS.R
 
-# This script follows ANCOMBC_robust_foliarAir_pt0.05 (own computer) and bacterialSporeFormers_Sept.R (run on server, but saved in both locations)
+# This script follows ANCOMBC_robust_foliarAir_pt0.05 (own computer) and bacteriaSporesAndPigment.R (run on server, but saved in both locations)
 
 # Differential Abundance between savanna and forest air
 # PROCESSING ANCOM-BC RESULTS FOR BIOAEROSOLS
@@ -42,10 +42,9 @@ ITSall_8.5Kfiltered.ps <-  readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rOb
 I6S_ANCOMall_.05pct_df <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/I6S_ANCOMall_.05pct_df.rds")
 ITS_ANCOMall_.05pct_df <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ITS_ANCOMall_.05pct_df.rds")
 
-# Not read in right now since making bubble plots first
 # # 3. READ IN SPORULATION AND PIGMENTATION INFORMATION (BOTH made in bacterialSporeFormers_Sept.R on server)
-# ANCOMspore <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_withSpore_Oct2_2025.RData")
-# ANCOMgenPig <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ANCOM_ijsemGenusPig_10-03-2025.rds")
+ANCOMspore <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_withSpore_Oct13_2025.rds")
+ANCOMgenPig <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/ANCOM_ijsemGenusPig_10-14-2025.rds")
 
 ########################################################################
 #   II. PHYLOSEQ OBJECT DOUBLE CHECKING 
@@ -102,6 +101,9 @@ ITSairPhylloOnly.ps_meta <- as.data.frame(as.matrix(sample_data(ITSairPhylloOnly
 #   III. BACTERIA: EXPLORE ANCOM RESULTS (BIOAEROSOLS AND FOLIAR SURFACE) 
 ########################################################################
 ########### i. BACTERIA ###########
+length(which(I6S_ANCOMall_.05pct_df$ANCOMcat == "bioaerosol")) #94
+length(which(I6S_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")) #126
+
 ##### FACETED DOT PLOT ####
 #### TRY FIRST WITH FAMILY ####
 # As calculated below, shows only 55/184 bioaerosol ASVs and 91/126 foliar surface ASVs, 
@@ -316,12 +318,34 @@ I6S_allClassANCOM_bubPlot
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE 2nd set of FACET LABELS ALONG Y-AXIS, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
 
+# WHAT ARE TOP CLASSES FOR BIOAEROSOL AND FOLIAR SURFACE ASVS? (ADDED TO MANUSCRIPT)
+head(I6S_ANCOMall_.05pct_df)
+countsDistinctClassI6SANCOM <- I6S_ANCOMall_.05pct_df %>%
+  group_by(ANCOMcat, Class) %>% 
+  summarise(nASVs = n_distinct(ASV_name), .groups = "drop") %>% #number of distinct ASVs per group then drop group
+  group_by(ANCOMcat) %>%
+  mutate(totalInANCOMcat = sum(nASVs),
+         prop = nASVs / totalInANCOMcat,
+         pct  = 100 * prop) %>% #pct is percentage
+  ungroup()
+# View(countsDistinctClassI6SANCOM)
+# Do these add up to one? YES!
+sum(countsDistinctClassI6SANCOM$prop[which(countsDistinctClassI6SANCOM$ANCOMcat == "bioaerosol")])
+sum(countsDistinctClassI6SANCOM$prop[which(countsDistinctClassI6SANCOM$ANCOMcat == "foliar surface")])
+
+# A check of the code above
+AlphaProFS_check <- length(intersect(which(I6S_ANCOMall_.05pct_df$Class == "Alphaproteobacteria"), 
+                                 which(I6S_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")))/
+  length(which(I6S_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")) 
+# True so this is working as expected
+AlphaProFS_check == countsDistinctClassI6SANCOM$prop[intersect(which(countsDistinctClassI6SANCOM$ANCOMcat == "foliar surface"), which(countsDistinctClassI6SANCOM$Class == "Alphaproteobacteria"))]
+
 ########################################################################
 #   III. FUNGI: EXPLORE ANCOM RESULTS (BIOAEROSOLS AND FOLIR SURFACE) 
 ########################################################################
-########################################################################
-#   III. FUNGI: EXPLORE ANCOM RESULTS (BIOAEROSOLS AND FOLIAR SURFACE) 
-########################################################################
+length(which(ITS_ANCOMall_.05pct_df$ANCOMcat == "bioaerosol")) #152
+length(which(ITS_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")) #243
+
 ########### FUNGI ###########
 ##### FACETED DOT PLOT ####
 #### TRY FIRST WITH FAMILY ####
@@ -541,67 +565,27 @@ ITS_2ordANCOM_bubPlot
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
 
+# WHAT ARE TOP ORDERS FOR BIOAEROSOL AND FOLIAR SURFACE ASVS? (ADDED TO MANUSCRIPT)
+head(ITS_ANCOMall_.05pct_df)
+countsDistinctOrderITSANCOM <- ITS_ANCOMall_.05pct_df %>%
+  group_by(ANCOMcat, Order) %>% 
+  summarise(nASVs = n_distinct(ASV_name), .groups = "drop") %>% #number of distinct ASVs per group then drop group
+  group_by(ANCOMcat) %>%
+  mutate(totalInANCOMcat = sum(nASVs),
+         prop = nASVs / totalInANCOMcat,
+         pct  = 100 * prop) %>% #pct is percentage
+  ungroup()
+# View(countsDistinctOrderITSANCOM)
+# Do these add up to one? YES!
+sum(countsDistinctOrderITSANCOM$prop[which(countsDistinctOrderITSANCOM$ANCOMcat == "bioaerosol")])
+sum(countsDistinctOrderITSANCOM$prop[which(countsDistinctOrderITSANCOM$ANCOMcat == "foliar surface")])
 
-
-# NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
-# MANUALLY DO THESE THINGS IN POWERPOINT
-
-# # WHAT ARE TOP ORDERS FOR BIOAEROSOL AND FOLIAR SURFACE ASVS? (ADDED TO MANUSCRIPT)
-# head(ITS_leafAir_ANCOM_small)
-# countsDistinctOrderITSANCOM <- ITS_leafAir_ANCOM_small %>%
-#   group_by(ANCOMcat, Order) %>%
-#   summarise(n = n_distinct(ASV_name), .groups = "drop") %>%
-#   group_by(ANCOMcat) %>%
-#   mutate(totalInANCOMcat = sum(n),
-#          prop = n / totalInANCOMcat,
-#          pct  = 100 * prop) %>% #pct is percentage
-#   ungroup()
-# # View(countsDistinctOrderITSANCOM)
-# # Do these add up to one? YES!
-# sum(countsDistinctOrderITSANCOM$prop[which(countsDistinctOrderITSANCOM$ANCOMcat == "bioaerosol")])
-# sum(countsDistinctOrderITSANCOM$prop[which(countsDistinctOrderITSANCOM$ANCOMcat == "foliar surface")])
-# 
-# 
-# 
-# 
-# # ALMOST MATCHES COLORS IN HABITATANALYSES_SEPT.R EXCEPT Clostridia AND SOME EXTRAS
-# # From https://github.com/Nowosad/rcartocolor (except for "#FE8F42", which I think will work)
-# display_carto_all(colorblind_friendly = TRUE)
-# display_carto_pal(12, "Safe")
-# carto_pal(12, "Safe")
-# 
-# 
-# setdiff(carto_pal(12, "Safe"), unname(colsForOrderesITS))
-# 
-# colsForOrdersITS_ANCOM <- c("Agaricales" = "#88CCEE","Auriculariales" = "#CC6677","Cantharellales"= "#DDCC77","Capnodiales" = "#117733","Chaetothyriales" = "#332288",
-#                             "Dothideales" = "#44AA99", "Hymenochaetales" =  "#999933","Pleosporales" = "#882255","Polyporales" =  "#661100", "Russulales" = "#FE8F42",
-#                             "Trechisporales" = "#6699CC",  "Tremellales" = "#AA4499")
-# 
-# 
-
-# ## WHAT ARE TOP CLASSES FOR AIR AND FOLIAR SURFACE SPECIALISTS (REPORTED IN PAPER)
-# # View(ITS_leafAir_ANCOM_forPlot)
-# ITS_MEAN_airLeafANCOM_OrderesByType <- ITS_leafAir_ANCOM_forPlot %>%
-#   group_by(ANCOMcat) %>%
-#   count(Order) %>%
-#   arrange(desc(n))
-# ITS_MEAN_airLeafANCOM_OrderesByType
-# # View(ITS_MEAN_airLeafANCOM_OrderesByType)
-# 
-# # Get percentages of ASVs
-# ITS_MEAN_airOrderes <- ITS_MEAN_airLeafANCOM_OrderesByType %>%
-#   filter(ANCOMcat == "air") %>%
-#   mutate(classPercentage = n/sum(n)*100)
-# ITS_MEAN_airOrderes
-# # Check
-# 22/37 # looks correct!
-# 
-# ITS_MEAN_leafOrderes <- ITS_MEAN_airLeafANCOM_OrderesByType %>%
-#   filter(ANCOMcat == "phyllo") %>%
-#   mutate(classPercentage = n/sum(n)*100)
-# ITS_MEAN_leafOrderes
-
-
+# A check of the code above
+pleoFS_check <- length(intersect(which(ITS_ANCOMall_.05pct_df$Order == "Pleosporales"), 
+                 which(ITS_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")))/
+  length(which(ITS_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")) 
+# True so this is working as expected
+pleoFS_check == countsDistinctOrderITSANCOM$prop[intersect(which(countsDistinctOrderITSANCOM$ANCOMcat == "foliar surface"), which(countsDistinctOrderITSANCOM$Order == "Pleosporales"))]
 
 ########################################################################
 #   V. BACTERIAL SPORULATION
@@ -613,33 +597,31 @@ which(is.na(ANCOMspore$spore4cats)==FALSE)
 # Keep only those ASVs with a match in Madin, i.e., those that DON'T have NA as their sporulation category
 ANCOMspore <- ANCOMspore[which(is.na(ANCOMspore$spore4cats)==FALSE),]
 # View(ANCOMspore)
-nrow(ANCOMspore) #173 had data
-# Add in ANCOM category
-ANCOMspore$ANCOMcat <- NA
-ANCOMspore$ANCOMcat[which(ANCOMspore$lfc_sampleTypephyllosphere > 0)] <- "foliar surface"
-ANCOMspore$ANCOMcat[which(ANCOMspore$lfc_sampleTypephyllosphere < 0)] <- "bioaerosol"
+nrow(ANCOMspore) #111 had data
+111/220*100 #55.5% matches percentage reported that i calculated in bacteriaSporesAndPigment
 
 # Split these into separate air and phyllosphere dataframes
 ANCOMspore_air <- ANCOMspore[which(ANCOMspore$ANCOMcat == "bioaerosol"),]
 unique(ANCOMspore_air$ANCOMcat)
-nrow(ANCOMspore_air) #80
+nrow(ANCOMspore_air) #61
 ANCOMspore_foliar <- ANCOMspore[which(ANCOMspore$ANCOMcat == "foliar surface"),]
 unique(ANCOMspore_foliar$ANCOMcat)
-nrow(ANCOMspore_foliar) #93 with information
+nrow(ANCOMspore_foliar) #50 with information
 
 # INVESTIGATE PATTERNS AND MAKE PIE CHARTS -- tentatively supports hypothesis!
 table(ANCOMspore$ANCOMcat, ANCOMspore$spore4cats)
-#                no possible yes
-# bioaerosol     47       22  11
-# foliar surface 76        9   8
+#                 no possible yes
+# bioaerosol     41       13   7
+# foliar surface 43        5   2
 
 yesOrPossibleSporeIndex <- c(which(ANCOMspore$spore4cats == "yes"), which(ANCOMspore$spore4cats == "possible"))
 sporeYesOrPossible <- ANCOMspore[yesOrPossibleSporeIndex,]
 # View(sporeYesOrPossible)
-unique(sporeYesOrPossible$Order) #14
-unique(sporeYesOrPossible$Class) # "Actinobacteria", "Bacilli", "Gammaproteobacteria", "Alphaproteobacteria
+unique(sporeYesOrPossible$Order) #11
+unique(sporeYesOrPossible$Class) #  "Bacilli"              "Thermoanaerobacteria" "Clostridia"           "Actinobacteria"       "Myxococcia"          
+# [6] "Gammaproteobacteria"  "Alphaproteobacteria" 
 # Some Ramlibacter (Alphaproteobacteria, produce cysts!!!)
-# Confirmed too that some Pseudomonas in Madin database produce
+# Confirmed too that some Pseudomonas and Sphingomonadaceae in Madin database are classified as spore producing
 head(sporeYesOrPossible)
 sporeYesOrPossible_order <- sporeYesOrPossible %>% 
   group_by(ANCOMcat, Order) %>% 
@@ -662,11 +644,6 @@ sporeAirPhyllo_barPlot <- ggplot(sporeYesOrPossible_order) +
     y = "Number of ASVs"  
   )
 
-
-# What percentage was there sporulation information for?
-nrow(ANCOMspore)/nrow(I6S_leafAir_ANCOM_ASVlvl)*100 #41.09264, so 41.1%!!
-length(unique(ANCOMspore$ASV_name))/nrow(I6S_leafAir_ANCOM_ASVlvl)*100 #matches above
-# Previously: 46/(37+49)*100 #53.48837%
 
 ##### STACKED BARPLOTS:
 # Make dataframe
@@ -722,8 +699,8 @@ sporeAirPhyllo_barPlot_LegBott <- ggplot(sporeLeafAir_df) +
     y = "Number of differentially-\nabundant ASVs "  
   )
 
-# October 3, 2025
-# saveRDS(sporeAirPhyllo_barPlot_LegBott, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sporeAirFoliar_barPlot_10-03-2025.rds")
+# October 15, 2025
+# saveRDS(sporeAirPhyllo_barPlot_LegBott, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sporeAirFoliar_barPlot_10-15-2025.rds")
 
 #### PERFORM chi-squared tests to SEE IF AIR AND PHYLLOSPHERE VARY IN SPORULATION 
 # (TESTED NO AGAINST PROPORTION OF YES/POTENTIALLY)
@@ -759,29 +736,25 @@ colnames(contTableSporesCombinedReordered) <- c("possibleAndYes", "no")
 contTableSporesCombinedReordered
 contTableANCOMgroups #double check that this adds up like the original
 
+set.seed(18)
 sporesFisherTest <- fisher.test(contTableSporesCombinedReordered)
 sporesFisherTest
 
-# Fisher's Exact Test for Count Data -- MUCH MORE SIGNIFICANT
+# Fisher's Exact Test for Count Data
 # 
 # data:  contTableSporesCombinedReordered
-# p-value = 0.001286
+# p-value = 0.02663
 # alternative hypothesis: true odds ratio is not equal to 1
 # 95 percent confidence interval:
-#  1.498123 6.681042
+#  1.064311 9.224660
 # sample estimates:
 # odds ratio 
-#   3.117245 
-
+#   2.967765 
 
 ########################################################################
 #   VI. BACTERIAL PIGMENTATION!
 ########################################################################
 ANCOMgenPig
-# Add in ANCOM category
-ANCOMgenPig$ANCOMcat <- NA
-ANCOMgenPig$ANCOMcat[which(ANCOMgenPig$lfc_sampleTypephyllosphere > 0)] <- "foliar surface"
-ANCOMgenPig$ANCOMcat[which(ANCOMgenPig$lfc_sampleTypephyllosphere < 0)] <- "bioaerosol"
 
 # Make stacked barplot
 # Make dataframe
@@ -789,18 +762,18 @@ pigLeafAir_df <- as.data.frame(matrix(ncol=3, nrow=6))
 colnames(pigLeafAir_df) <- c("ANCOMcat", "numberASVs", "PigConsensus")
 table(ANCOMgenPig$ANCOMcat, ANCOMgenPig$PigConsensus)
 #                 no yes yesAndNo
-# bioaerosol      3  47       38
-# foliar surface  5  36       37
+# bioaerosol      3  16       33
+# foliar surface  2  21       18
 
 # How many available?
-length(unique(ANCOMgenPig$ASV_name))/length(unique(I6S_leafAir_ANCOM_small$ASV_name))*100 #39.42993, so 39% in MS
+length(unique(ANCOMgenPig$ASV_name))/length(unique(I6S_ANCOMall_.05pct_df$ASV_name))*100 #42.27273, so 42.3% in MS
 
 pigLeafAir_df[,1] <- c(rep("bioaerosol",3), rep("foliar surface", 3))
 pigLeafAir_df
 pigLeafAir_df[,3] <- c(rep(c("no", "possible", "yes"), 2))
 pigLeafAir_df
 table(ANCOMgenPig$ANCOMcat, ANCOMgenPig$PigConsensus)
-pigLeafAir_df[,2] <- c(3, 38, 47, 5, 37, 36)
+pigLeafAir_df[,2] <- c(3, 33, 16, 2, 18, 21)
 pigLeafAir_df #looks good,  but double check by inspecting that these match the tables below:
 table(ANCOMgenPig$ANCOMcat, ANCOMgenPig$PigConsensus)
 
@@ -827,8 +800,8 @@ ANCOMgenPigPlot <- ggplot(pigLeafAir_df) +
   )
 
 ANCOMgenPigPlot
-# October 6, 2025
-# saveRDS(ANCOMgenPigPlot, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ANCOMgenPigPlot_10-06-2025.rds")
+# October 15, 2025
+# saveRDS(ANCOMgenPigPlot, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ANCOMgenPigPlot_10-15-2025.rds")
 
 #### PERFORM chi-squared tests to SEE IF AIR AND PHYLLOSPHERE VARY IN PIGMENTATION PRODUCTION ABILITY
 # (TESTED NO AGAINST PROPORTION OF YES/POTENTIALLY)
@@ -863,21 +836,20 @@ colnames(pigContigencyTableCombinedReordered) <- c("possibleAndYes", "no")
 pigContigencyTableCombinedReordered
 pigContigencyTable  #double check that this adds up like the original and it does
 
+set.seed(21)
 pigmentFisherTest <- fisher.test(pigContigencyTableCombinedReordered)
 pigmentFisherTest
 
 # Fisher's Exact Test for Count Data
 # 
 # data:  pigContigencyTableCombinedReordered
-# p-value = 0.4766
+# p-value = 1
 # alternative hypothesis: true odds ratio is not equal to 1
 # 95 percent confidence interval:
-#   0.3619491 12.8720344
+#  0.06702525 7.70672979
 # sample estimates:
 # odds ratio 
-#   1.932947 
-
-
+#  0.8391869 
 
 ############# SPORE SIZE NOW IN SCRIPT sporeSizeSept5.R ########
 
