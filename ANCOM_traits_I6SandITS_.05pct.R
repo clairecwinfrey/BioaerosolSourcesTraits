@@ -857,44 +857,6 @@ pigmentFisherTest
 ########################################################################
 #   VI. FUNGAL FRUITING BODIES
 ########################################################################
-##### RE DO THIS SECTION ##### 
-# ITS_MEAN_airLeafANCOM
-# # What are the top fungal orders by percentage of the ANCOM results (to be 
-# # included in the paper with fruiting bodies)
-# which(ITS_MEAN_airLeafANCOM$ANCOMcat == "air")
-# unique(ITS_MEAN_airLeafANCOM$Order[which(ITS_MEAN_airLeafANCOM$ANCOMcat == "air")])
-# 
-# colnames(ITS_MEAN_airLeafANCOM)
-# ITS_MEAN_airLeafANCOM_orderByType <- ITS_MEAN_airLeafANCOM %>% 
-#   group_by(ANCOMcat) %>% 
-#   count(Order) %>% 
-#   arrange(desc(n)) %>% 
-#   print(n= 33)
-# ITS_MEAN_airLeafANCOM_orderByType %>% 
-#   print(n= 33)
-# 
-# # This is the sum of all of the distinct ASVs (which matches other calculations)
-# sum(ITS_MEAN_airLeafANCOM_orderByType$n[ITS_MEAN_airLeafANCOM_orderByType$ANCOMcat == "air"])
-# 
-# # IN AIR
-# ITS_MEAN_airLeafANCOM_orderAir <- ITS_MEAN_airLeafANCOM_orderByType %>% 
-#   filter(ANCOMcat == "air") %>% 
-#   mutate(percentOrder = n/sum(ITS_MEAN_airLeafANCOM_orderByType$n[ITS_MEAN_airLeafANCOM_orderByType$ANCOMcat == "air"])*100)
-# ITS_MEAN_airLeafANCOM_orderAir
-# 
-# # Check a few to confirm above is working... and yes!
-# # Polyporales in air
-# 85/150*100 #56.7%
-# # Hymenochaetales in air
-# 27/150*100 #18
-# 
-# # ON FOLIAR SURFACES
-# ITS_MEAN_airLeafANCOM_orderFoliar <- ITS_MEAN_airLeafANCOM_orderByType %>% 
-#   filter(ANCOMcat == "phyllo") %>% 
-#   mutate(percentOrder = n/sum(ITS_MEAN_airLeafANCOM_orderByType$n[ITS_MEAN_airLeafANCOM_orderByType$ANCOMcat == "phyllo"])*100)
-# ITS_MEAN_airLeafANCOM_orderFoliar
-
-
 ########
 #         FORMATTING FOR FUNGuild 
 ########
@@ -915,12 +877,12 @@ colnames(airFoliarFUNGuildTable1)[1] <- "OTU_ID"
 # Collapse taxonomy into one column 
 airFoliarFUNGuildTable1 <- tidyr::unite(airFoliarFUNGuildTable1, sep=";",col= "taxonomy", Kingdom:Species)
 # View(airFoliarFUNGuildTable1)
-head(airFoliarFUNGuildTable1) #has species info as we want!
+head(airFoliarFUNGuildTable1) #has species info as we want as one big taxonomy with ; separation!
 colnames(airFoliarFUNGuildTable1)
 dim(airFoliarFUNGuildTable1)
 
 #### HERE: SHOULD CHECK THAT SAME OUTPUT AS ON SERVER, i.e.
-# Written to file October 4, 2025
+# Written to file October 16, 2025
 # write.table(airFoliarFUNGuildTable1, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airFoliarFUNGuildTable1.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 # Code above should make it so that no quotation marks and rownames appear, but I confirmed this by opening in Excel anyway
 # Note: double checked here: https://github.com/UMNFuN/FUNGuild/blob/master/README.md that the version I have, Guilds_v1.1.py, is the most current
@@ -931,13 +893,13 @@ dim(airFoliarFUNGuildTable1)
 # This created the output file in the same folder where the input ASV table was found:
 # ~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airFoliarFUNGuildTable1.guilds_matched.txt !
 
-# load results file:
+# Load raw results file (note that this has ALL fungal ASVs in air and foliar surfaces, not just ANCOM):
 rawFungResults <- read.delim(file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airFoliarFUNGuildTable1.guilds_matched.txt", header = T)
 # View(rawFungResults) 
 dim(rawFungResults)
 #  6422 out of 9012 had results in fungGuild OTUs!!
 # How many fungal taxa could we match?
-6422/9012 *100 #71.26054, or 71.3% of ASVs had a match, but that's a lot more ASVs and foliar surfaces and air!!!
+6422/9012 *100 #71.26054, or 71.3% of ASVs had a match, but this is overall, not ANCOM yet
 # Compare with old results:  3485/4673*100 #74.58% were matched
 colnames(rawFungResults)[1] <- "ASV_name"
 dim(rawFungResults)
@@ -951,44 +913,44 @@ fungResults <- rawFungResults[fungAssignedIndex,]
 dim(fungResults) # 5710  180
 head(fungResults)
 colnames(fungResults)
-5710/9012*100 #63.35996% or 63.4% of all ANCOM-identified fungal ASVs had high probably or highly probable info!!
+5710/9012*100 #63.35996% or 63.4% of all fungal ASVs had high probably or highly probable info!!
 # OLD RESULTS: 3074/4673*100 #65.78% were matched
 
-# INVESTIGATE with ANCOM results
-ITS_leafAir_ANCOM_small
-length(unique(ITS_leafAir_ANCOM_small$ASV_name)) #692
+# INVESTIGATE WITH ANCOM RESULTS
+head(ITS_ANCOMall_.05pct_df)
+# Get subsetted columns because do not need whole ASV table twice!!!
+subsetFungCols <- colnames(fungResults) %in% c("ASV_name" , "taxonomy", "Taxon", "Taxon.Level", "Trophic.Mode", "Guild", "Growth.Morphology","Trait","Confidence.Ranking")
+length(unique(ITS_ANCOMall_.05pct_df$ASV_name)) #395
 # Join with ANCOM results results with an inner join so that only ANCOM pulled out
-ITS_leafAir_ANCOM_small
-airLeafANCOM_FUNGUILD <- inner_join(ITS_leafAir_ANCOM_small, x=fungResults, by="ASV_name")
-length(unique(airLeafANCOM_FUNGUILD$ASV_name)) #512
+airLeafANCOM_FUNGUILD <- inner_join(ITS_ANCOMall_.05pct_df, x=fungResults[,subsetFungCols], by="ASV_name")
+length(unique(airLeafANCOM_FUNGUILD$ASV_name)) #300
 # This shows that 512/692 differentially abundant were matched!
-512/629*100 #81.39905, or 81.4%
-# OLD RESULTS:184/387*100 #47.5%
+length(unique(airLeafANCOM_FUNGUILD$ASV_name))/length(unique(ITS_ANCOMall_.05pct_df$ASV_name))*100 #75.94937, or 75.9%, but see below because this is before taxa w/o growth morphology removed
 
 # Make a smaller dataset without specific sample abundances 
 colnames(airLeafANCOM_FUNGUILD)
 airLeafANCOM_FUNGUILD_Smaller <- airLeafANCOM_FUNGUILD %>% 
-  select(ANCOMcat, lfc_sampleTypephyllosphere, diff_sampleTypephyllosphere, Trophic.Mode, Growth.Morphology, 
-         Guild, Order, Family, Genus, Species)
+  select(ASV_name, ANCOMcat, Trophic.Mode, Growth.Morphology, 
+         Guild, Order, Family, Genus, Species, foliarSurfaceOcc, bioaerosolOcc, 
+         pctBioaerosol, pctFoliar)
 # View(airLeafANCOM_FUNGUILD_Smaller)
 
-length(which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL")) #28 were unassigned
-dim(airLeafANCOM_FUNGUILD_Smaller[-which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL"),]) #484  10
-484/629*100 #76.94754 or 76.9% had growth morphology data!!!
-# OLD RESULTS: 121/387*100 #Only 31.27% had growth morphology data
+length(which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL")) #14 were unassigned
+dim(airLeafANCOM_FUNGUILD_Smaller[-which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL"),]) #286  10
+dim(airLeafANCOM_FUNGUILD_Smaller[-which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL"),])[1]/length(unique(ITS_ANCOMall_.05pct_df$ASV_name))*100 #72.40506 or 72.4% had growth morphology data!!!
 
 # Remove those with no growth morph info
 airLeafANCOM_FG_NoNullMorph <- airLeafANCOM_FUNGUILD_Smaller[-which(airLeafANCOM_FUNGUILD_Smaller$Growth.Morphology == "NULL"),]
 dim(airLeafANCOM_FG_NoNullMorph)
 
 # What proportion of the original air or phyllo species could be matched for growth morphology?
-airMorphNumber <- length(which(airLeafANCOM_FG_NoNullMorph$ANCOMcat == "bioaerosol")) #number of ASVs enriched in air with morph data = 324
-airANCOMNumber <- length(which(ITS_leafAir_ANCOM_small$ANCOMcat == "bioaerosol")) #422 original bioaerosol taxa
-airMorphNumber/airANCOMNumber*100 #76.77725% or 76.8% of air enriched taxa has morphological data
+airMorphNumber <- length(which(airLeafANCOM_FG_NoNullMorph$ANCOMcat == "bioaerosol")) #number of ASVs enriched in air with morph data = 130
+airANCOMNumber <- length(which(ITS_ANCOMall_.05pct_df$ANCOMcat == "bioaerosol")) #152 original bioaerosol taxa
+airMorphNumber/airANCOMNumber*100 #85.52632% or 85.5% of air enriched taxa has morphological data
 
-foliarMorphNumber <- length(which(airLeafANCOM_FG_NoNullMorph$ANCOMcat == "foliar surface")) #number of ASVs enriched in foliar data with morph data = 23
-foliarANCOMNumber <- length(which(ITS_leafAir_ANCOM_small$ANCOMcat == "foliar surface")) #number of ASVs enriched in foliar = 237
-foliarMorphNumber/foliarANCOMNumber*100 #59.25926% or 59.26% of foliar-enriched taxa could be matched :)
+foliarMorphNumber <- length(which(airLeafANCOM_FG_NoNullMorph$ANCOMcat == "foliar surface")) #number of ASVs enriched in foliar data with morph data = 156
+foliarANCOMNumber <- length(which(ITS_ANCOMall_.05pct_df$ANCOMcat == "foliar surface")) #number of ASVs enriched in foliar = 243
+foliarMorphNumber/foliarANCOMNumber*100 #64.19753% or 64.2% of foliar-enriched taxa could be matched :)
 
 MorphAirLeavesTable <- table(airLeafANCOM_FG_NoNullMorph$Growth.Morphology, airLeafANCOM_FG_NoNullMorph$ANCOMcat)
 MorphAirLeaves_df <- as.data.frame(MorphAirLeavesTable)
@@ -998,14 +960,14 @@ colnames(MorphAirLeaves_df) <- c("morphology", "ANCOMcat", "freq")
 # Add Unclassified to show number that could be matched for bioaerosols and foliar surface
 # 1. Add a new level, "unclassified"
 levels(MorphAirLeaves_df$morphology) <- c(levels(MorphAirLeaves_df$morphology), "Unclassified")
-airANCOMNumber - airMorphNumber #98 could not be matched (98/422 could not be matched)
-airMorphNumber/airANCOMNumber*100 #76.77725% could be classified (matches above)
+airANCOMNumber - airMorphNumber #22 could not be matched (22/243+152 could not be matched)
+airMorphNumber/airANCOMNumber*100 #85.52632% could be classified (matches above)
 # View(MorphAirLeaves_df)
 nrow(MorphAirLeaves_df) 
 # Make last row unclassified bioaerosol and add in number unclassified
 MorphAirLeaves_df[nrow(MorphAirLeaves_df) +1,] <- c("Unclassified", "bioaerosol", airANCOMNumber - airMorphNumber)
-foliarANCOMNumber - foliarMorphNumber #110 (out of 270 foliar surface ANCOM cat) could NOT be matched
-foliarMorphNumber/foliarANCOMNumber*100 #59.25926 could be matched, matches above!
+foliarANCOMNumber - foliarMorphNumber #87 (out of 243 foliar surface ANCOM cat) could NOT be matched
+foliarMorphNumber/foliarANCOMNumber*100 #64.19753 could be matched, matches above!
 MorphAirLeaves_df[nrow(MorphAirLeaves_df) +1,] <- c("Unclassified", "foliar surface", foliarANCOMNumber - foliarMorphNumber)
 MorphAirLeaves_df$freq <- as.numeric(MorphAirLeaves_df$freq)
 class(MorphAirLeaves_df$freq)
@@ -1021,7 +983,7 @@ MorphAir_only <- MorphAirLeaves_df %>%
   arrange(desc(percentMorph))
 MorphAir_only
 # View(MorphAir_only)
-sum(MorphAir_only$freq[-nrow(MorphAir_only)]) # 324 matches which is correct (matches number of ANCOM taxa that 
+sum(MorphAir_only$freq[-nrow(MorphAir_only)]) # 130 matches which is correct (matches number of ANCOM taxa that 
 # I was able to assign morphology information), Did -nrow(MorphAir_only) to subtract out Unclassified
 
 # FOLIAR
@@ -1032,51 +994,50 @@ MorphLEAF_only <- MorphAirLeaves_df %>%
   arrange(desc(percentMorph))
 MorphLEAF_only
 # View(MorphLEAF_only)
-sum(MorphLEAF_only$freq[-nrow(MorphLEAF_only)]) # 160 matches which is correct (matches number of ANCOM taxa that
+sum(MorphLEAF_only$freq[-nrow(MorphLEAF_only)]) #156 matches which is correct (matches number of ANCOM taxa that
 # I was able to assign morphology information), Did -nrow(MorphAir_only) to subtract out Unclassified
 
 # MAKE A PLOT THAT SHOWS ANCOM CATEGORY AND MORPHOLOGY
 # 1. Get which morphologies to include
-length(unique(MorphAirLeaves_df$morphology)) #21 unique, but this is too many
+length(unique(MorphAirLeaves_df$morphology)) #16 unique, but this is too many
 numMorphCat <- MorphAirLeaves_df %>% 
   group_by(morphology) %>% 
   summarize(n= sum(freq)) %>% 
   arrange(n)
 print(numMorphCat, n= nrow(numMorphCat))
 # View(numMorphCat)
-# Will use only those morphologies with at least 5 representative ASVs
-manyMorphs <- numMorphCat$morphology[which(numMorphCat$n >= 5)]
+# Will use only those morphologies with at least 2 representative ASVs
+manyMorphs <- numMorphCat$morphology[which(numMorphCat$n >= 2)]
 manyMorphs <- as.character(manyMorphs) #remove factor levels
 # View(numMorphCat) #checked that these match!
 
 # 2. Get a smaller dataframe just with these morphologies
-MorphAirLeaves_5_df <- MorphAirLeaves_df #make a copy to edit or stupid factors will mess up
-MorphAirLeaves_5_df$morphology <- as.character(MorphAirLeaves_5_df$morphology) #remove factor levels
-is.factor(MorphAirLeaves_5_df$morphology) #good this is false
+MorphAirLeaves_2_df <- MorphAirLeaves_df #make a copy to edit or stupid factors will mess up
+MorphAirLeaves_2_df$morphology <- as.character(MorphAirLeaves_2_df$morphology) #remove factor levels
+is.factor(MorphAirLeaves_2_df$morphology) #good this is false
 # Remove rarer morphologies
-MorphAirLeaves_5_df <- MorphAirLeaves_5_df[which(MorphAirLeaves_5_df$morphology %in% manyMorphs),]
+MorphAirLeaves_2_df <- MorphAirLeaves_2_df[which(MorphAirLeaves_2_df$morphology %in% manyMorphs),]
 # Remove unclassified
-MorphAirLeaves_5_df <- MorphAirLeaves_5_df[-which(MorphAirLeaves_5_df$morphology == "Unclassified"),]
-# View(MorphAirLeaves_5_df)
-rownames(MorphAirLeaves_5_df) <- NULL #remove pesky, unintentional rownames
-setdiff(unique(MorphAirLeaves_5_df$morphology), manyMorphs) #no differences, yay!
-# View(MorphAirLeaves_5_df)
-length(unique(MorphAirLeaves_5_df$morphology)) 11
+MorphAirLeaves_2_df <- MorphAirLeaves_2_df[-which(MorphAirLeaves_2_df$morphology == "Unclassified"),]
+# View(MorphAirLeaves_2_df)
+setdiff(unique(MorphAirLeaves_2_df$morphology), manyMorphs) #no differences, yay!
+# View(MorphAirLeaves_2_df)
+length(unique(MorphAirLeaves_2_df$morphology)) #12
 
 # 3. Set colors
 carto_pal(12, "Safe")
-morphsToPlot <- unique(MorphAirLeaves_5_df$morphology)
+morphsToPlot <- unique(MorphAirLeaves_2_df$morphology)
 class(morphsToPlot); is.vector(morphsToPlot)
 length(morphsToPlot)
 colsForANCOMmorphs <- setNames(
-  c("#88CCEE","#CC6677","#117733","#DDCC77","#332288",
-    "#44AA99","#999933","#882255","#FE8F42","#661100",
-    "#6699CC"),
-  morphsToPlot[1:11]
+  c("#FE8F42","#CC6677","#117733","#DDCC77","#332288",
+    "#44AA99","#999933","#882255","#88CCEE","#661100",
+    "#6699CC", "#AA4499"),
+  morphsToPlot[1:12]
 )
 
 # 4. Make the plot!
-airLeafANCOM_FUNGUILD_5_barPlot <- ggplot(MorphAirLeaves_5_df) +
+airLeafANCOM_FUNGUILD_2_barPlot <- ggplot(MorphAirLeaves_2_df) +
   geom_bar(aes(x = ANCOMcat, y = freq, fill = morphology), 
            position = "stack", stat = "identity") +
   theme_bw() +
@@ -1095,19 +1056,22 @@ airLeafANCOM_FUNGUILD_5_barPlot <- ggplot(MorphAirLeaves_5_df) +
     y = "Number of ASVs"  
   )
 
-airLeafANCOM_FUNGUILD_5_barPlot 
-# saveRDS(airLeafANCOM_FUNGUILD_5_barPlot, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_FUNGUILD_5_barPlot_Oct6_2025.rds")
+airLeafANCOM_FUNGUILD_2_barPlot 
+# saveRDS(airLeafANCOM_FUNGUILD_2_barPlot, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_FUNGUILD_2_barPlot_Oct16_2025.rds")
 # CRUST FUNGI (Corticoid): https://www.crustfungi.com/html/sidebar/introduction.html#:~:text=Morphological%20Definition,or%20hydnoid%20hymenophore;%20and%20holobasidia.
 
-# tiff(filename="airLeafANCOM_FUNGUILD_barPlotApril15.tiff",height=5600,width=5200,units="px",res=800,compression="lzw")
-# airLeafANCOM_FUNGUILD_barPlot
-# dev.off()
-
-# What did some these specific ASVs look like?
+# EXPLORING SPECIFIC ASVS
 # Capnodiales, the leaf specialists!
 # View(airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$Order=="Capnodiales",])
 # Take a look at all matches for leaf surfaces
-#View(airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$ANCOMcat=="phyllo",])
+# View(airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$ANCOMcat=="foliar surface",])
 
-#View(airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$ANCOMcat=="air",])
+# View(airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$ANCOMcat=="bioaerosol",])
+
+# TRAMETES EXAMPLE (in manuscript). #Shows 5 ASVs, all with polyporoid growth morphology
+airLeafANCOM_FG_NoNullMorph[airLeafANCOM_FG_NoNullMorph$Genus=="Trametes",]
+# Get % of total fungal reads these ANCOM-identified Trametes comprised
+sum(airLeafANCOM_FG_NoNullMorph$pctBioaerosol[airLeafANCOM_FG_NoNullMorph$Genus=="Trametes"]) #3.377989, or 3.4% of all biaoerosol reads
+# Get occupancy in bioaerosol samples. This is the average that each ASV is in in bioaerosol samples
+mean(airLeafANCOM_FG_NoNullMorph$bioaerosolOcc[airLeafANCOM_FG_NoNullMorph$Genus=="Trametes"] )/110 #0.9036364, 90% added to paper
 
