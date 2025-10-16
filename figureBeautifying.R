@@ -60,24 +60,24 @@ vennPlotNOTEXT <- readRDS(file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjec
 
 # b. Description: "volume distributions of fungal uninucleate sexual spores by ASV in the air and foliar surface samples"
 # From sporeSizeAug26_2025.R
-sexSpore_ViolinPlot <- readRDS("Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sexSpore_ViolinPlot_Sept3.rds")
+sexSpore_ViolinPlot <- readRDS("Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sexSpore_ViolinPlot_Oct16.rds")
 sexSpore_ViolinPlot +
   theme(panel.grid = element_blank()) # remove ALL gridlines
 
 # c. 
 
-# d. Sporulation
+# d. Sporulation, made in ANCOM_traits_I6SandITS_.05pct.R
 spore_barPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sporeAirFoliar_barPlot_10-15-2025")
 spore_barPlot +
   theme(panel.grid = element_blank()) # remove ALL gridlines
 
-# e. Pigmentation
+# e. Pigmentation, made in ANCOM_traits_I6SandITS_.05pct.R
 ANCOMgenPigPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ANCOMgenPigPlot_10-15-2025.rds")
 ANCOMgenPigPlot +
   theme(panel.grid = element_blank()) # remove ALL gridlines
 
-# f. Morphology? #made in ANCOM_traits_I6SandITS_Sept.R
-airLeafANCOM_FUNGUILD_5_barPlot <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_FUNGUILD_5_barPlot_Oct6_2025.rds")
+# f. Morphology, made in ANCOM_traits_I6SandITS_.05pct.R
+airLeafANCOM_FUNGUILD_5_barPlot <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_FUNGUILD_2_barPlot_Oct16_2025.rds")
 airLeafANCOM_FUNGUILD_5_barPlot + 
   theme(panel.grid = element_blank()) # remove ALL gridlines
 
