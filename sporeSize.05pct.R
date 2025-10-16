@@ -588,13 +588,11 @@ sexualSporeWilcoxon_trim #W = 142, p-value = 0.004016 Shows that there is differ
 ####### 9. INFO BY TAXONOMIC GROUP ######
 # i. In full spore volume datasets 
 unique(sexSporeMatches$Order) #18 now
-# Sort to be alphabetical
-#sexSporeMatches$Order <- factor(sexSporeMatches$Order, levels = sort(levels(sexSporeMatches$Order)))
 ordersANCOM <- as.data.frame.matrix(table(sexSporeMatches$Order, sexSporeMatches$ANCOMcat))
 ordersANCOM <- rownames_to_column(ordersANCOM)
 colnames(ordersANCOM) <- c("Order", "bioaerosol_all", "foliar_all")
-
 ordersANCOM
+# Get median volume for each order
 orderMed <- sexSporeMatches %>% 
   group_by(Order) %>% 
   summarize(orderMed = median(medianVol))
@@ -616,7 +614,7 @@ trimOrdersANCOM
 # iii. Combine dataframes together
 orderSporeSize_all <- left_join(ordersANCOM, trimOrdersANCOM, by = "Order")
 # View(orderSporeSize_all) #note that NAs in trimmed part should be zeros
-# write.csv(orderSporeSize_all, file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/orderSporeSize_all_October5.csv")
+# write.csv(orderSporeSize_all, file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/orderSporeSize_all_October16.csv")
 
 ########## ASEXUAL SPORES ##########
 # NOTE SEPT. 3, 2025: NOT USED IN MANUSCRIPT
