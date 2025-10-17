@@ -240,8 +240,8 @@ sum(numberClassesANCOM_I6S$ASVsInClassByHab) == length(unique(I6S_ANCOMall_.05pc
 allnumberClassesANCOM_I6S <- numberClassesANCOM_I6S[-which(numberClassesANCOM_I6S$Class == "NA"),] #drop NA classes
 dim(allnumberClassesANCOM_I6S)
 sum(allnumberClassesANCOM_I6S$ASVsInClassByHab) #shows 215/220
-sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "foliar surface")]) #123/___ foliar surface ASVs
-sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "bioaerosol")]) #92/___ biaoerosol ASVs
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "foliar surface")]) #123/126 foliar surface ASVs
+sum(allnumberClassesANCOM_I6S$ASVsInClassByHab[which(allnumberClassesANCOM_I6S$ANCOMcat == "bioaerosol")]) #92/94 biaoerosol ASVs
 
 # Add phylum info to this plot by merging with subset of I6S_ANCOMall_.05pct_df that has phylum info! DO distinct because otherwise subset is v long and get many-to-many relationship
 classPhylaI6S <- distinct(I6S_ANCOMall_.05pct_df[,colnames(I6S_ANCOMall_.05pct_df) %in% c("Class", "Phylum")])
@@ -317,6 +317,7 @@ I6S_allClassANCOM_bubPlot <- ggplot(allnumberClassesANCOM_I6S_no0s,
 I6S_allClassANCOM_bubPlot
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE 2nd set of FACET LABELS ALONG Y-AXIS, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
+# saveRDS(I6S_allClassANCOM_bubPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allClassANCOM_bubPlot_10-16-2025.rds")
 
 # WHAT ARE TOP CLASSES FOR BIOAEROSOL AND FOLIAR SURFACE ASVS? (ADDED TO MANUSCRIPT)
 head(I6S_ANCOMall_.05pct_df)
@@ -561,7 +562,8 @@ ITS_2ordANCOM_bubPlot <- ggplot(ITS_2order_df_no0s,
 
 # quartz(width = 6, height = 7)
 ITS_2ordANCOM_bubPlot
-#
+
+#saveRDS(ITS_2ordANCOM_bubPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_2ordANCOM_bubPlot_10-16-2025.rds")
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
 
