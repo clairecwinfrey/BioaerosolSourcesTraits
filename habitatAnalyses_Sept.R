@@ -525,6 +525,33 @@ airFungalOrdersBySamplePlot
 ###### ii. ORDINATIONS #####
 ############# BACTERIA #############
 # NOTE: Although these are useful, they are NOT on Hellinger-transformed data
+#### 1. Ordination air based on habitat type
+sample_data(airOnly_16Sr_noAirSingsDoubs_phyloseq)$HabitatAir
+
+# 16S
+set.seed(19)
+air_16S.ord <- ordinate(airOnly_16Sr_noAirSingsDoubs_phyloseq, "NMDS", "bray") #stress is 0.3218862
+
+I6S_habitatAirOrd <- plot_ordination(airOnly_16Sr_noAirSingsDoubs_phyloseq, air_16S.ord, type="samples", color="HabitatAir") +
+  scale_color_manual(values =c("savanna" = "goldenrod", "forest"  = "forestgreen")) +
+  geom_point(size=2) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) # remove ALL gridlines
+I6S_habitatAirOrd
+# saveRDS(I6S_habitatAirOrd, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_habitatAirOrd_10-17-25.rds")
+
+# ITS
+set.seed(190)
+air_ITS.ord <- ordinate(airOnly_ITS_noAirSingsDoubs_phyloseq, "NMDS", "bray") #stress is  0.1009676
+
+ITS_habitatAirOrd <- plot_ordination(airOnly_ITS_noAirSingsDoubs_phyloseq, air_ITS.ord, type="samples", color="HabitatAir") +
+  scale_color_manual(values =c("savanna" = "goldenrod", "forest"  = "forestgreen")) +
+  geom_point(size=2) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) # remove ALL gridlines
+ITS_habitatAirOrd
+# saveRDS(ITS_habitatAirOrd, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_habitatAirOrd_10-17-25.rds")
+
 #### 2. "Big" ordination for I6S across air, soil, and phyllosphere
 # Grayed out since in earlier EDArarefied_part2_Sept.R script and that script had where these were saved for MS.
 # RESULTS WERE THE SAME THOUGH
