@@ -499,8 +499,8 @@ ITS_2order_df <- ITS_2order_df %>%
 ITS_2order_df$Order
 unique(ITS_2order_df$Order)
 levels(ITS_2order_df$Order)
-# Change _ord_Incertae_sedis and make it 
-levels(ITS_2order_df$Order) <- gsub(x=levels(ITS_2order_df$Order), pattern="_ord_Incertae_sedis", replacement = ", inc. sed.")
+# Remove _ord_Incertae_sedis. Note that Cystobasidiomycetes is inc. sed in caption
+levels(ITS_2order_df$Order) <- gsub(x=levels(ITS_2order_df$Order), pattern="_ord_Incertae_sedis", replacement = "")
 levels(ITS_2order_df$Order)
 
 # Now remove those with 0 so that there are no dots for zero
@@ -563,7 +563,7 @@ ITS_2ordANCOM_bubPlot <- ggplot(ITS_2order_df_no0s,
 # quartz(width = 6, height = 7)
 ITS_2ordANCOM_bubPlot
 
-#saveRDS(ITS_2ordANCOM_bubPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_2ordANCOM_bubPlot_10-16-2025.rds")
+# saveRDS(ITS_2ordANCOM_bubPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_2ordANCOM_bubPlot_10-16-2025.rds")
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE Y-AXIS TICKS FROM THE RIGHT SIDE, SO I WILL
 # MANUALLY DO THESE THINGS IN POWERPOINT
 
@@ -698,7 +698,7 @@ sporeAirPhyllo_barPlot_LegBott <- ggplot(sporeLeafAir_df) +
   labs(
     fill = "Sporulation Ability",  #change legend title
     x = NULL,
-    y = "Number of differentially-\nabundant ASVs "  
+    y = "Number of ASVs "  
   )
 
 # October 15, 2025
@@ -1037,7 +1037,7 @@ colsForANCOMmorphs <- setNames(
     "#6699CC", "#AA4499"),
   morphsToPlot[1:12]
 )
-
+# saveRDS(colsForANCOMmorphs, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/colsForANCOMmorphs.rds")
 # 4. Make the plot!
 airLeafANCOM_FUNGUILD_2_barPlot <- ggplot(MorphAirLeaves_2_df) +
   geom_bar(aes(x = ANCOMcat, y = freq, fill = morphology), 

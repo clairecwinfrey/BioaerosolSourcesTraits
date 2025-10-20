@@ -465,14 +465,17 @@ log(max(sexSporeMatches$medianVol)) #max is 7.007117, informative for ylim param
 dim(sexSporeMatches)[1] #192
 sexSpore_ViolinPlot <- ggplot(data=sexSporeMatches, aes(x=ANCOMcat, y=log(medianVol))) + 
   geom_violin(linewidth = 1.25) + # (aes(color= ANCOMcat), linewidth =1.5) this would change outline
-  geom_jitter(aes(color = ANCOMcat), size=4, alpha=0.6, height = 0, width = 0.35) +
+  geom_jitter(aes(color = ANCOMcat), size=2, alpha=0.6, height = 0, width = 0.35) +
   theme_bw() +
   theme(
-    axis.title.y = element_text(size = 20),
-    axis.text.y = element_text(size = 20),
-    legend.position="none",
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    axis.text.y = element_text(size = 10, color= "black"),
+    axis.title.y = element_text(size = 10), color= "black",
+    axis.text.x = element_text(size = 10, color = "black"),
     axis.title.x = element_blank(),
-    axis.text.x = element_text(size = 16)) +
+    legend.position = "none"
+  )+
   scale_color_manual(values = c("bioaerosol" = "#004CFF", "foliar surface" = "darkgreen")) + 
   labs(y = "Log of Median Spore Volume") +
   ggtitle("Fungal Uninucleate Sexual Spores") +
