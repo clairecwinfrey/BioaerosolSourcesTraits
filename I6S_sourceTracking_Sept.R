@@ -29,6 +29,7 @@ library("ggVennDiagram")
 library("magrittr")
 library("dplyr")
 library("ggbeeswarm")
+library("ggplot2"); packageVersion("ggplot2") #‘4.0.0’
 
 # HANDY FUNCTION TO GET ASV TABLE OUT OF PHYLOSEQ:
 # Function to get ASV table out of phyloseq so that we can #View it better
@@ -42,6 +43,10 @@ ASVs_outta_ps <- function(physeq){ #input is a phyloseq object
 all16Sr_noAirSingsDoubs.ps <- readRDS(file="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/all16Sr_noAirSingsDoubs_ps_sept25.rds")
 all16Sr_noAirSingsDoubs.ps
 sample_data(all16Sr_noAirSingsDoubs.ps)
+# Confirms that this has no bioaerosol singletons or doubletons
+air16SSampsColsIndex <- grepl(x=colnames(otu_table(all16Sr_noAirSingsDoubs.ps)), pattern= "air_")
+unique(sort(rowSums(otu_table(all16Sr_noAirSingsDoubs.ps)[,air16SSampsColsIndex]))) #(no values of 1 or 2)
+
 length(which(sample_data(all16Sr_noAirSingsDoubs.ps)$sampleType == "soil")) #157 samples
 length(which(sample_data(all16Sr_noAirSingsDoubs.ps)$sampleType == "air")) #84 samples
 length(which(sample_data(all16Sr_noAirSingsDoubs.ps)$sampleType == "phyllosphere")) #58 samples
@@ -1021,10 +1026,9 @@ I6S_allTypesPresAbs_2panels <- ggplot(I6S_specialistsPresAbs_allTypes_long, aes(
   theme_bw() +
   scale_fill_manual(values=c("cornflowerblue", "cornflowerblue", "chartreuse4", "chocolate4")) +
   scale_color_manual(values = c("black", "black", "black", "black")) + #color for jittered points
-  scale_x_discrete(labels=c("bioaerosol\nforested matrix", "bioaerosol\nopen patch", "foliar surface", "soil")) +
+  scale_x_discrete(labels=c("bioaerosol\nmatrix", "bioaerosol\npatch", "foliar surface", "soil")) +
   theme(axis.text=element_text(size=14),
-        axis.title=element_text(size=16),
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+        axis.title=element_text(size=16)) +
   #ggtitle("Bacterial indicator taxa across all samples")  +
   labs(y = "Proportion of leaf or soil indicator taxa",
        x = NULL) +
@@ -1034,8 +1038,8 @@ I6S_allTypesPresAbs_2panels <- ggplot(I6S_specialistsPresAbs_allTypes_long, aes(
   theme(strip.text = element_text(size = 16))
 I6S_allTypesPresAbs_2panels
 
-# SAVE PLOT (saved September 25, 2025) 
-# saveRDS(I6S_allTypesPresAbs_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allTypesPresAbs_2panels_09-25-25")
+# SAVE PLOT (saved October 25, 2025) 
+# saveRDS(I6S_allTypesPresAbs_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allTypesPresAbs_2panels_10-25-25.rds")
 
 ### PRESENCE/ABSENCE: STATISTCS
 # Paired Wilcoxon signed-rank test
@@ -1080,6 +1084,7 @@ I6S_airASVs <- ASVs_outta_ps(I6SairOnly.ps)
 unique(colSums(I6S_airASVs))
 I6S_airASVnames <- names(which(rowSums(I6S_airASVs) > 0)) #get all of the ASVs that have at least one sequence
 length(I6S_airASVnames) == 2870+230+479+526 #4105
+unique(sort(rowSums(I6S_airASVs[rownames(I6S_airASVs) %in% I6S_airASVnames,]))) #none are zero and no singletons and doubletons
 
 # Get foliar surface ASVs
 I6S_phylloASVs <- ASVs_outta_ps(I6S_phyllo_rarefied_noControls)
@@ -1090,6 +1095,9 @@ length(I6S_phylloASVnames) #6520
 I6S_soilASVs <- ASVs_outta_ps(I6S_soil_rarefied_noControls)
 I6S_soilASVnames <- names(which(rowSums(I6S_soilASVs) > 0))
 length(I6S_soilASVnames) #22868
+unique(sort(rowSums(I6S_soilASVs[rownames(I6S_soilASVs) %in% I6S_soilASVnames,]))) #none are zero
+length(I6S_soilASVnames) == sum(20022, 229, 479, 2138) #22868 and this equals what's reported in Venn diagram
+
 
 # Make a list with an element for each of the categories of ASVs
 I6S_ASVsForVenn <- list(
@@ -1098,7 +1106,6 @@ I6S_ASVsForVenn <- list(
   I6S_foliarSurface <- I6S_phylloASVnames
 )
 str(I6S_ASVsForVenn)
-
 
 # Within blue circles (air only), add in the percentage that each of these number makes up of the total air community (thinking of all air samples merged as one air sample). 
 

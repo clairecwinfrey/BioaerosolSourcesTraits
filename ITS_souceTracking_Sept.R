@@ -48,6 +48,9 @@ length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType == "soil")) #155
 length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType == "air")) #110 samples
 length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType == "phyllosphere")) #59 samples
 plantDat_df <- sample_data(allITSr_noAirSingsDoubs.ps)[which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType == "phyllosphere"),]
+airSampsColsIndex <- grepl(x=colnames(otu_table(allITSr_noAirSingsDoubs.ps)), pattern= "air_")
+# Confirms that this has no bioaerosol singletons or doubletons
+unique(sort(rowSums(otu_table(allITSr_noAirSingsDoubs.ps)[,airSampsColsIndex])))
 
 table(plantDat_df$EU)
 # EU_52 EU_53S EU_54S   EU_8 
@@ -390,8 +393,8 @@ ITS_allTypesAir_2panels <- ggplot(ITS_specialistsProportion_allTypes_long, aes(x
   theme(strip.text = element_text(size = 16))
 ITS_allTypesAir_2panels
 
-# SAVE PLOT (saved September 28, 2025) 
-# saveRDS(ITS_allTypesAir_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesAir_2panels_ITS_09-28-25")
+# SAVE PLOT (saved Oct 25, 2025) 
+# saveRDS(ITS_allTypesAir_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesAir_2panels_ITS_09-28-25.rds")
 
 ##############
 # STATISTICS
@@ -1026,10 +1029,10 @@ ITS_allTypesPresAbs_2panels <- ggplot(ITS_specialistsPresAbs_allTypes_long, aes(
   theme_bw() +
   scale_fill_manual(values=c("cornflowerblue", "cornflowerblue", "chartreuse4", "chocolate4")) +
   scale_color_manual(values = c("black", "black", "black", "black")) + #color for jittered points
-  scale_x_discrete(labels=c("bioaerosol\nforested matrix", "bioaerosol\nopen patch", "foliar surface", "soil")) +
+  scale_x_discrete(labels=c("bioaerosol\nmatrix", "bioaerosol\npatch", "foliar surface", "soil")) +
   theme(axis.text=element_text(size=14),
         axis.title=element_text(size=16),
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+        ) +
   #ggtitle("Bacterial indicator taxa across all samples")  +
   labs(y = "Proportion of leaf or soil indicator taxa",
        x = NULL) +
@@ -1039,8 +1042,8 @@ ITS_allTypesPresAbs_2panels <- ggplot(ITS_specialistsPresAbs_allTypes_long, aes(
   theme(strip.text = element_text(size = 16))
 ITS_allTypesPresAbs_2panels
 
-# SAVE PLOT (saved September 29, 2025) 
-# saveRDS(ITS_allTypesPresAbs_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesPresAbs_2panels_09-29-25")
+# SAVE PLOT (saved October 25, 2025) 
+# saveRDS(ITS_allTypesPresAbs_2panels, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesPresAbs_2panels_10-25-25.rds")
 
 ### PRESENCE/ABSENCE: STATISTCS
 # Paired Wilcoxon signed-rank test
@@ -1083,17 +1086,20 @@ ITS_soil_rarefied_noControls <- subset_samples(allITSr_noAirSingsDoubs.ps, sampl
 ITS_airASVs <- ASVs_outta_ps(ITSairOnly.ps)
 unique(colSums(ITS_airASVs))
 ITS_airASVnames <- names(which(rowSums(ITS_airASVs) > 0)) #get all of the ASVs that have at least one sequence
+unique(sort(rowSums(ITS_airASVs[rownames(ITS_airASVs) %in% ITS_airASVnames,]))) #none are zero and no singletons and doubletons
 length(ITS_airASVnames) #4673
 
 # Get foliar surface ASVs (i.e., any that were detected in foliar surface samples)
 ITS_phylloASVs <- ASVs_outta_ps(ITS_phyllo_rarefied_noControls)
 ITS_phylloASVnames <- names(which(rowSums(ITS_phylloASVs) > 0))
+unique(sort(rowSums(ITS_phylloASVs[rownames(ITS_phylloASVs) %in% ITS_phylloASVnames,]))) #none are zero
 length(ITS_phylloASVnames) #4703
 
 # Get soil ASVs (i.e., any that were detected in soil samples)
 ITS_soilASVs <- ASVs_outta_ps(ITS_soil_rarefied_noControls)
 ITS_soilASVnames <- names(which(rowSums(ITS_soilASVs) > 0))
-length(ITS_soilASVnames) #5612
+unique(sort(rowSums(ITS_soilASVs[rownames(ITS_soilASVs) %in% ITS_soilASVnames,]))) #none are zero
+length(ITS_soilASVnames) == sum(4541, 169, 369, 533) #5612 and this equals what's reported in Venn diagram
 
 # Make a list with an element for each of the categories of ASVs
 ITS_ASVsForVenn <- list(
@@ -1102,8 +1108,6 @@ ITS_ASVsForVenn <- list(
   ITS_foliarSurface <- ITS_phylloASVnames
 )
 str(ITS_ASVsForVenn)
-
-# Within blue circles (air only), add in the percentage that each of these number makes up of the total air community (thinking of all air samples merged as one air sample). 
 
 # Using the vignette as a guide, manually recreate and edit Venn Diagram
 vignette("fully-customed", package = "ggVennDiagram")
@@ -1135,7 +1139,7 @@ ITS_vennPlot <- ggplot() +
 
 ITS_vennPlot #excellent, matches original Venn diagram
 # saveRDS(ITS_vennPlot, file = "RobjectsSaved/ITS_vennPlot_Jan8_2024.rds") #saved January 14, 2024
-# saveRDS(ITS_vennPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_vennPlot_09-29-2025.rds") #saved September 29, 2025
+# saveRDS(ITS_vennPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_vennPlot_09-29-2025.rds") #saved Oct 25, 2025
 
 # Get an all-white version without text for editing if need be:
 vennPlotNOTEXT <- ggplot() +
@@ -1161,7 +1165,7 @@ vennPlotNOTEXT <- ggplot() +
   theme_void() + 
   theme(legend.position='none') #remove legend
 vennPlotNOTEXT
-# saveRDS(vennPlotNOTEXT, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/vennPlotNOTEXT_09-29-2025.rds") #saved September 29, 2025
+# saveRDS(vennPlotNOTEXT, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/vennPlotNOTEXT_09-29-2025.rds") #saved October 25, 2025
 
 # Double check that the calculations that were manually made in the Venn Diagrams are correct and get ASV names for subsets:
 # i. Only soil
@@ -1194,12 +1198,13 @@ length(airFoliarOverLapOnlyNames) == 1056
 #####################
 # SOME ADDITIONAL CALCULATIONS FOR MANUSCRIPT AND VENN DIAGRAMS (TO ADD IN POWERPOINT OR INKSCAPE)
 #####################
-# In manuscript: what percentage of total foliar surface ASVs overlapped with soil?
+# In manuscript: what percentage of total foliar surface ASVs overlapped with soil for fungi (compared with for bacteria, which
+# was calculated in a different script)?
 ((369+533)/length(ITS_phylloASVnames))*100 #19.17925. Added 19.2% to manuscript
 
 # Set up of air reads
 ITS_airASVnames #these are the ASVs present in air 
-3079+169+369+1056 == length(ITS_airASVnames)
+3079+169+369+1056 == length(ITS_airASVnames) #shows that it matches Venn Diagram
 ITS_airASVs #Made above and gets air ASV table
 head(ITS_airASVs)
 # For manuscript: Fill in text here: Second, there were some taxa present in the bioaerosols that were not found in either the sampled soils or foliar surfaces, but the contribution of these taxa was minimal
@@ -1222,7 +1227,7 @@ unique(ITS_airASVs_df$sampleName)
 ITSASVabund_AirSamps <- ITS_airASVs_df %>% 
   group_by(ASVname) %>% 
   summarize(ASVtotalAbund = sum(ASVabundance))
-sum(ITSASVabund_AirSamps$ASVtotalAbund) #461273
+sum(ITSASVabund_AirSamps$ASVtotalAbund) #933866
 # iii. Grouping by each ASV, proportion that each ASV makes up of total community is that ASV total 
 # abundance divided by the total ASV abundance of all reads in the air samples
 ITSASVabund_AirSamps_2 <- ITSASVabund_AirSamps %>% 
