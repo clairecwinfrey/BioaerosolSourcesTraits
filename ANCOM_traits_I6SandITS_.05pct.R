@@ -316,7 +316,7 @@ I6S_allClassANCOM_bubPlot <- ggplot(allnumberClassesANCOM_I6S_no0s,
 #quartz(width = 6, height = 7)
 I6S_allClassANCOM_bubPlot
 # NOTE: LEGEND WILL NOT LEFT JUSTIFY NOR CAN I REMOVE 2nd set of FACET LABELS ALONG Y-AXIS, SO I WILL
-# MANUALLY DO THESE THINGS IN POWERPOINT
+# MANUALLY DO THESE THINGS IN POWERPOINT when I add phyla
 # saveRDS(I6S_allClassANCOM_bubPlot, file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allClassANCOM_bubPlot_10-16-2025.rds")
 
 # WHAT ARE TOP CLASSES FOR BIOAEROSOL AND FOLIAR SURFACE ASVS? (ADDED TO MANUSCRIPT)

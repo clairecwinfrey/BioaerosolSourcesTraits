@@ -106,7 +106,7 @@ all16S_tax_sep <- all16S_tax_sep %>% #make ASV_ID column the rownames to make it
 head(all16S_tax_sep)
 
 # 3. SAMPLE METADATA--
-allMetadata <- read.csv("Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/aeroAllMetadat_Apr20_2023.csv", row.names=1) #made in ITS_metadataAndMappingFileSetUp.R
+allMetadata <- read.csv("~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/aeroAllMetadat_Apr20_2023.csv", row.names=1) #made in ITS_metadataAndMappingFileSetUp.R
 # View(allMetadata)
 colnames(allMetadata)
 rownames(allMetadata)
@@ -180,7 +180,7 @@ setdiff(sort(rownames(airSamplesALL_df)), sort(colnames(all16S_otu_matTrimmed)))
 dfToDrop <- which(rownames(airSamplesALL_df) %in% colnames(all16S_otu_matTrimmed) == FALSE)
 rownames(airSamplesALL_df)[dfToDrop] #"air_16S_PCR_NTC_1_H12" "phyllo_16S_PCR_NTC_1"  "phyllo_16S_PCR_NTC_2" 
 rownames(airSamplesALL_df)[dfToDrop[1]] <- "air_16S_PCR_NTC_1_H12" #rename sample
-airSamplesALL_df <- airSamplesALL_df[-dfToDrop[2:3],] #only drop"phyllo_16S_27" and "phyllo_16S_36" 
+airSamplesALL_df <- airSamplesALL_df[-dfToDrop[2:3],] 
 rownames(airSamplesALL_df)
 # The next two lines confirm that these are the same
 setdiff(sort(colnames(all16S_otu_matTrimmed)), sort(rownames(airSamplesALL_df)))
