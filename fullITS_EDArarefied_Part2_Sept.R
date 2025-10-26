@@ -320,6 +320,7 @@ allITSr_noAirSingsDoubs.ps <- merge_phyloseq(airITS_noSingDoubs.ps, soilITSr_noC
 ############## ORDINATIONS ##############
 #### 1. "Big" ordination of all remaining samples (including blanks)
 # Shows that bioaerosol field controls are closest to air, but are on their own.
+set.seed(21)
 allITSrarefied.ord <- ordinate(allITS_rarefied.ps, "NMDS", "bray")
 ITS_rarefiedOrd1 <- plot_ordination(allITS_rarefied.ps, allITSrarefied.ord, type="samples", color="sampleType") 
 ITS_rarefiedOrd1 + geom_polygon(aes(fill=sampleType), alpha = 1/5) + geom_point(size=5) + ggtitle("samples") + theme_bw()
@@ -401,11 +402,17 @@ allITSr_onlySamps_ordPlot + geom_polygon(aes(fill=sampleType)) + geom_point(size
 allITSr_onlySamps_ordPlot + theme_bw() + geom_polygon(aes(fill=sampleType, alpha = 1/5)) + geom_point(size=5) + ggtitle("NMDS based on sample origin") + theme_bw()
 
 # New version for manuscript (Sept. 17, 2025), added to figureBeautifying.R
-ITS_bySampTypeOrd <- allITSr_onlySamps_ordPlot + scale_color_manual(values =c("cornflowerblue", "forestgreen","darkorange3")) +
-  geom_point(size=5) + ggtitle("NMDS based on sample origin") + theme_bw()
+ITS_bySampTypeOrd <- allITSr_onlySamps_ordPlot + 
+  scale_color_manual(values =c("cornflowerblue", "forestgreen","chocolate"), 
+                     labels = c("bioaerosol\nn = 110 (ITS)\nn = 84 (16S)\n", "foliar surfaces\nn=59 (ITS)\nn = 58 (16S)\n", "soil\nn = 155 (ITS)\nn = 157 (16S)"),
+                     name = NULL) + #remove legend title name
+  geom_point(size=2) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+  
 ITS_bySampTypeOrd
-# Saved September 17, 2025
-# saveRDS(ITS_bySampTypeOrd, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_bySampTypeOrd_09-17-2025.rds")
+# Saved October 25, 2025
+# saveRDS(ITS_bySampTypeOrd, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_bySampTypeOrd_10-25-2025.rds")
 
 #### 5. Just air- Do samples cluster together based on EU?  -- (just air samples)
 # Plot shows that there does not seem to be a pattern based on EU. 

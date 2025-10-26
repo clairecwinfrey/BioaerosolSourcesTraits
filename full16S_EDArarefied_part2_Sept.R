@@ -340,6 +340,7 @@ sort(colnames(sample_data(all16Sr_noAirSingsDoubs.ps))) #HabitatAir was retained
 # whereas phyllo neg. field controls are slightly closest to phyllo, but still congregate by themselves.
 # This shows cross-contamination with bioaerosol controls, unsurprising for low biomasss
 unique(as.data.frame((as.matrix(sample_data(all16Sr_noAirSingsDoubs.ps))))$sampleType)
+set.seed(10)
 all16Srarefied.ord <- ordinate(I6S_dcAP_rarefied.ps, "NMDS", "bray")
 
 rarefiedOrd1 <- plot_ordination(I6S_dcAP_rarefied.ps, all16Srarefied.ord, type="samples", color="sampleType") 
@@ -406,20 +407,25 @@ I6Sr_BAFS_Ps_BonF #3e-04
 #### 3. Ordination of only non-controls- this shows that air, soil, and the phyllosphere are *very* distinct 
 # (i.e. no overlap) which is overall expected and good. Furthermore, it suggests that air samples are closer
 # to the phyllosphere samples than they are to the soil!
-
 unique(as.data.frame((as.matrix(sample_data(all16Sr_noAirSingsDoubs.ps))))$sampleType)
+set.seed(12)
 all16Sr_onlySamps.ord <- ordinate(all16Sr_noAirSingsDoubs.ps, "NMDS", "bray") #stress is 0.1148366 
 all16Sr_onlySamps_ordPlot <- plot_ordination(all16Sr_noAirSingsDoubs.ps, all16Sr_onlySamps.ord, type="samples", color="sampleType") 
 all16Sr_onlySamps_ordPlot + geom_polygon(aes(fill=sampleType)) + geom_point(size=5) + ggtitle("samples")
 # quartz()
-all16Sr_onlySamps_ordPlot + theme_bw()
-all16Sr_onlySamps_ordPlot + geom_polygon(aes(fill=sampleType, alpha = 1/5)) + geom_point(size=5) + ggtitle("NMDS based on sample origin") + theme_bw()
 
-# New version for manuscript (Sept. 17, 2025), added to figureBeautifying.R
-I6S_bySampTypeOrd <- all16Sr_onlySamps_ordPlot + scale_color_manual(values =c("cornflowerblue", "forestgreen","darkorange3")) +
-  geom_point(size=5) + ggtitle("NMDS based on sample origin") + theme_bw()
+# New version for manuscript (October 25, 2025), added to figureBeautifying.R
+I6S_bySampTypeOrd <- all16Sr_onlySamps_ordPlot +
+  scale_color_manual(values =c("cornflowerblue", "forestgreen","chocolate"), 
+                    labels = c("bioaerosol\nn = 110 (ITS)\nn = 84 (16S)\n", "foliar surfaces\nn=59 (ITS)\nn = 58 (16S)\n", "soil\nn = 155 (ITS)\nn = 157 (16S)"),
+                    name = NULL) + #remove legend title name
+  geom_point(size=2) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+I6S_bySampTypeOrd
+
 # Saved September 17, 2025
-# saveRDS(I6S_bySampTypeOrd, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_bySampTypeOrd_09-17-2025.rds")
+# saveRDS(I6S_bySampTypeOrd, "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_bySampTypeOrd_10-25-2025.rds")
 
 #### 4. Do samples (non-control) cluster together based on EU?  -- (all samples). There isn't a super clear pattern.
 all16Sr_EUs_ordPlot <- plot_ordination(all16Sr_noAirSingsDoubs.ps, all16Sr_onlySamps.ord, type="samples", color="sampleType", shape = "EU") 

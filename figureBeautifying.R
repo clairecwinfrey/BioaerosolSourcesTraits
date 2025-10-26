@@ -8,7 +8,7 @@
 # 2. Genome equivalents should be 16S COPY NUMBER?
 
 library(gridExtra)
-library(ggplot2); packageVersion("ggplot2") #‘3.5.1’
+library(ggplot2); packageVersion("ggplot2") #‘4.0.0’
 library(dplyr)
 library(scales)
 library(patchwork)
@@ -19,8 +19,6 @@ library(grid)
 ###############################
 ##### Objects used throughout:
 spacer_h <- unit(0.4, "in")  #gap for grid arrange
-
-
 
 ##### 1. IMPORT FIGURES MADE IN VARIOUS SCRIPTS #####
 #### MAIN FIGURES ####
@@ -243,10 +241,7 @@ ITS_allTypesPresAbs_2panels <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromic
 # 3 soil            72.5
 
 # Fig S4. Genome equivalents and NMDS
-# FIGURE 3: "Figure 3. Box and whisker plots indicating the number of fungal (a) and bacterial 
-# (b) genome equivalents detected per meter cubed of sampled air in each air sample, separated by air samples collected in the forested matrix and open patch"
-# From: habitatAnalyses_Sept.R
-# CHANGE Y AXIS TO GENE COPY NUMBER!!
+# From: habitatAnalyses_Sept.R 
 allITS_qPCR_byHabitatPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allITS_qPCR_byHabitat_09-21-2025.rds")
 allITS_qPCR_byHabitatPlot2 <- allITS_qPCR_byHabitatPlot +
   theme(panel.grid = element_blank()) + # remove ALL gridlines
@@ -311,53 +306,35 @@ ITS_habitatAirOrd2 <- ITS_habitatAirOrd +
 ITS_habitatAirOrd2
 
 grid.arrange(allITS_qPCR_byHabitatPlot2, allI6S_qPCR_byHabitatPlot2, ITS_habitatAirOrd2, I6S_habitatAirOrd2, nrow=2)
-###################################
-# MAKING MAIN FIGURES PRETTY! 
-###################################
-# REMOVE ALLL GRIDLINES ON THESE PLOTS!!!!!!!!!!!!!!
-# REMOVE ALLL GRIDLINES ON THESE PLOTS!!!!!!!!!!!!!!
-# REMOVE ALLL GRIDLINES ON THESE PLOTS!!!!!!!!!!!!!!
-# REMOVE ALLL GRIDLINES ON THESE PLOTS!!!!!!!!!!!!!!
-# BELOW FORMAT EXAMPLE FROM EDGE EFFECTS PAPER!!!!!
-  # From EnvDataPlotsStats.R (on own computer), as a starting place to standardizing all figures
-  # Horizontal color bar legend
-  #quartz() # Horizontal color bar legend - note that on March 10, 2025, I edited this to add a black outline around the legend color bar
-  #quartz() 
-  canCoverEU_10_grid + guides(fill = guide_colourbar(
-    title.position = "top",  # Moves title above color bar
-    title.hjust = 0.5,       # Centers title
-    ticks = FALSE, 
-    label.position = "bottom",  # Moves labels below the bar
-    nbin = 100, 
-    title = "Canopy cover (%)",
-    direction = "horizontal", 
-    barwidth = 6, 
-    barheight = 1.2,
-    frame.colour = "black"  # Adds a black outline to the color bar
-  )) + 
-  theme_bw() +
-  theme(legend.text = element_text(size = 8),  # Adjust legend text size
-        legend.title = element_text(size = 8, face = "bold") # Adjust legend title size
-  )  # Moves the title above the color bar
 
-# MARCH 10, 2025 -- saving this to include color bar legends:
-tiff(filename="manscript/Final_MS_Version2/Figures/Fig2_transectTurnoverCanCover_March8_2025.tiff",height=5600,width=5200,units="px",res=800,compression="lzw")
-canCoverEU_10_grid + guides(fill = guide_colourbar(
-  title.position = "top",  # Moves title above color bar
-  title.hjust = 0.5,       # Centers title
-  ticks = FALSE, 
-  label.position = "bottom",  # Moves labels below the bar
-  nbin = 100, 
-  title = "Canopy cover (%)",
-  direction = "horizontal", 
-  barwidth = 6, 
-  barheight = 1.2,
-  frame.colour = "black"  # Adds a black outline to the color bar
-)) + 
-  theme_bw() +
-  theme(legend.text = element_text(size = 8),  # Adjust legend text size
-        legend.title = element_text(size = 8, face = "bold") # Adjust legend title size
-  )  # Moves the title above the color bar
-dev.off()
+# Figure S2. Non-metric multidimensional scaling (NMDS) ordinations based on Bray-Curtis dissimilarities among bioaerosol, foliar surface, and soil
+# Made in fullITS_EDArarefied_Part2_Sept.R
+ITS_bySampTypeOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_bySampTypeOrd_10-25-2025.rds")
 
+ITS_bySampTypeOrd <- ITS_bySampTypeOrd +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+  )
+# Made in full1TS_EDArarefied_Part2_Sept.R
+I6S_bySampTypeOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_bySampTypeOrd_10-25-2025.rds")
+I6S_bySampTypeOrd <- I6S_bySampTypeOrd +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    legend.position = "none"
+  )
+  
+
+# Convert plots to grobs
+grobITS_bySampTypeOrd <- ggplotGrob(ITS_bySampTypeOrd)
+grobI6S_bySampTypeOrd <- ggplotGrob(I6S_bySampTypeOrd)
+
+# Ensure matching panel widths(so that, without legend, bacterial plot is not wider than fungal plot)
+grobI6S_bySampTypeOrd$widths <- grobITS_bySampTypeOrd$widths
+
+# quartz() #exported as S2_sampleTypeOrdinations.pdf 
+grid.arrange(grobITS_bySampTypeOrd, grobI6S_bySampTypeOrd, ncol=2)
 
