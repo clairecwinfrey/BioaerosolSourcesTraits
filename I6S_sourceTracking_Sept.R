@@ -223,7 +223,6 @@ I6S_specialistsProportion %>%
 
 ##############
 # PLOTS SHOWING PROPORTIONS OF ONLY AIR SAMPLES, BUT SEPARATED OUT BY FOREST/SAVANNA
-# Some grayed out and not re-checked (although likely correct) since not in submitted version of manuscript)
 ##############
 #View(I6S_specialistsProportion)
 # View(I6Srarefied_metadat) #look at the sample meta data. HabitatAir is what we need to divide the samples up!
@@ -250,41 +249,52 @@ savNamesCheck_I6S <- I6S_specialistsProportion_airOnly %>%
 
 sort(savNamesCheck_I6S$sampleName) == sort(I6S_airSavSampNames) #looks good!
 
-# # FINALLY, PLOT THEM!
-# # SOIL COMPARISON
-# airOnlysoilSpecProp_plot_I6S <- ggplot(I6S_specialistsProportion_airOnly, aes(x=HabitatAir, y=soilSpecProp, fill=HabitatAir)) +
-#   geom_boxplot() +
-#   theme_bw() +
-#   scale_fill_manual(values=c("darkgreen", "goldenrod")) +
-#   geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
-#   scale_x_discrete(name= "Underlying vegetation type", labels=c("forest", "savanna")) +
-#   scale_y_continuous(name= "Proportion of soil indicator taxa") + # limI6S=c(25, 225) add this argument to change limI6S
-#   theme(axis.text=element_text(size=18),
-#         axis.title=element_text(size=18)) +
-#   ggtitle("Soil bacterial indicator taxa across samples")  +
-#   theme(plot.title = element_text(size=20)) + #increase plot title size
-#   theme(legend.position = "none")  #remove legend
-#
-# # quartz()
-# airOnlysoilSpecProp_plot_I6S
-#
-# # PHYLLOSPHERE COMPARISON
-# airOnlyphylloSpecProp_plot_I6S <- ggplot(I6S_specialistsProportion_airOnly, aes(x=HabitatAir, y=phylloSpecProp, fill=HabitatAir)) +
-#   geom_boxplot() +
-#   theme_bw() +
-#   scale_fill_manual(values=c("darkgreen", "goldenrod")) +
-#   geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
-#   scale_x_discrete(name= "Underlying vegetation type", labels=c("forest", "savanna")) +
-#   scale_y_continuous(name= "Proportion of phyllosphere indicator taxa") + # limI6S=c(25, 225) add this argument to change limI6S
-#   theme(axis.text=element_text(size=18),
-#         axis.title=element_text(size=18)) +
-#   ggtitle("Phyllosphere bacterial indicator taxa across samples")  +
-#   theme(plot.title = element_text(size=20)) + #increase plot title size
-#   theme(legend.position = "none")  #remove legend
-#
-# # quartz()
-# airOnlyphylloSpecProp_plot_I6S
-#
+# FINALLY, PLOT THEM!
+# SOIL COMPARISON
+airOnlysoilSpecProp_plot_I6S <- ggplot(I6S_specialistsProportion_airOnly, aes(x=HabitatAir, y=soilSpecProp, fill=HabitatAir)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_fill_manual(values=c("darkgreen", "goldenrod")) +
+  geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
+  scale_x_discrete(name= NULL, labels=c("forested\nmatrix", "open\npatch")) +
+  scale_y_continuous(name= "Proportion of reads from\nsoil indicator taxa", limits=c(0.00, 1.00)) + # limITS=c(25, 225) add this argument to change limITS
+  theme(axis.text=element_text(size=16, color = "black"),
+        axis.title=element_text(size=16, color = "black")) +
+  ggtitle("Bacteria")  +
+  theme(plot.title = element_text(size=16, color = "black")) + #increase plot title size
+  theme(legend.position = "none")  #remove legend
+
+# quartz()
+airOnlysoilSpecProp_plot_I6S
+
+# Saved Nov. 4, 2025 (made for postdoc talk/exit talk)
+# saveRDS(airOnlysoilSpecProp_plot_I6S, file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlysoilSpecProp_plot_I6S.rds")
+airOnlysoilSpecProp_plot_I6S <- readRDS(file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlysoilSpecProp_plot_I6S.rds")
+
+# PHYLLOSPHERE COMPARISON
+airOnlyphylloSpecProp_plot_I6S <- ggplot(I6S_specialistsProportion_airOnly, aes(x=HabitatAir, y=phylloSpecProp, fill=HabitatAir)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_fill_manual(values=c("darkgreen", "goldenrod")) +
+  geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
+  scale_x_discrete(name= NULL, labels=c("forested\nmatrix", "open\npatch")) +
+  scale_y_continuous(name= "Proportion of reads from\nleaf indicator taxa", limits=c(0.00, 1.00)) + # limITS=c(25, 225) add this argument to change limITS
+  theme(axis.text=element_text(size=16, color = "black"),
+        axis.title=element_text(size=16, color = "black")) +
+  ggtitle("Bacteria")  +
+  theme(plot.title = element_text(size=16, color = "black")) + #increase plot title size
+  theme(legend.position = "none")  #remove legend
+
+# quartz()
+airOnlyphylloSpecProp_plot_I6S
+
+# Saved Nov. 4, 2025 (made for postdoc talk/exit talk)
+# saveRDS(airOnlyphylloSpecProp_plot_I6S, file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlyphylloSpecProp_plot_I6S.rds")
+airOnlyphylloSpecProp_plot_I6S <- readRDS(file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlyphylloSpecProp_plot_I6S.rds")
+airOnlyphylloSpecProp_plot_I6S
+
 # #### MAKE A TWO PANELED PLOT ###
 # # Re-shape dataframe to make proportions all in there!
 # colnames(I6S_specialistsProportion_airOnly)

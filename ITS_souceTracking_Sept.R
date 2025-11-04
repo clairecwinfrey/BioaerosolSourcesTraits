@@ -216,7 +216,6 @@ grid.arrange(soilSpecProp_plot_ITS, phylloSpecProp_plot_ITS, ncol=1)
 
 ##############
 # PLOTS SHOWING PROPORTIONS OF ONLY AIR SAMPLES, BUT SEPARATED OUT BY FOREST/SAVANNA
-# Some grayed out and not re-checked (although likely correct) since not in submitted version of manuscript)
 ##############
 #View(ITS_specialistsProportion)
 # View(ITSrarefied_metadat) #look at the sample meta data. HabitatAir is what we need to divide the samples up!
@@ -243,41 +242,52 @@ savNamesCheck_ITS <- ITS_specialistsProportion_airOnly %>%
 
 unique(sort(savNamesCheck_ITS$sampleName) == sort(ITS_airSavSampNames)) #looks good!
 
-# # FINALLY, PLOT THEM!
-# # SOIL COMPARISON
-# airOnlysoilSpecProp_plot_ITS <- ggplot(ITS_specialistsProportion_airOnly, aes(x=HabitatAir, y=soilSpecProp, fill=HabitatAir)) +
-#   geom_boxplot() +
-#   theme_bw() +
-#   scale_fill_manual(values=c("darkgreen", "goldenrod")) +
-#   geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
-#   scale_x_discrete(name= "Underlying vegetation type", labels=c("forest", "savanna")) +
-#   scale_y_continuous(name= "Proportion of soil indicator taxa") + # limITS=c(25, 225) add this argument to change limITS
-#   theme(axis.text=element_text(size=18),
-#         axis.title=element_text(size=18)) +
-#   ggtitle("Soil bacterial indicator taxa across samples")  +
-#   theme(plot.title = element_text(size=20)) + #increase plot title size
-#   theme(legend.position = "none")  #remove legend
-#
-# # quartz()
-# airOnlysoilSpecProp_plot_ITS
-#
-# # PHYLLOSPHERE COMPARISON
-# airOnlyphylloSpecProp_plot_ITS <- ggplot(ITS_specialistsProportion_airOnly, aes(x=HabitatAir, y=phylloSpecProp, fill=HabitatAir)) +
-#   geom_boxplot() +
-#   theme_bw() +
-#   scale_fill_manual(values=c("darkgreen", "goldenrod")) +
-#   geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
-#   scale_x_discrete(name= "Underlying vegetation type", labels=c("forest", "savanna")) +
-#   scale_y_continuous(name= "Proportion of phyllosphere indicator taxa") + # limITS=c(25, 225) add this argument to change limITS
-#   theme(axis.text=element_text(size=18),
-#         axis.title=element_text(size=18)) +
-#   ggtitle("Phyllosphere bacterial indicator taxa across samples")  +
-#   theme(plot.title = element_text(size=20)) + #increase plot title size
-#   theme(legend.position = "none")  #remove legend
-#
-# # quartz()
-# airOnlyphylloSpecProp_plot_ITS
-#
+# FINALLY, PLOT THEM!
+# SOIL COMPARISON
+airOnlysoilSpecProp_plot_ITS <- ggplot(ITS_specialistsProportion_airOnly, aes(x=HabitatAir, y=soilSpecProp, fill=HabitatAir)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_fill_manual(values=c("darkgreen", "goldenrod")) +
+  geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
+  scale_x_discrete(name= NULL, labels=c("forested\nmatrix", "open\npatch")) +
+  scale_y_continuous(name= "Proportion of reads from\nsoil indicator taxa", limits=c(0.00, 1.00)) + # limITS=c(25, 225) add this argument to change limITS
+  theme(axis.text=element_text(size=16, color = "black"),
+        axis.title=element_text(size=16, color = "black")) +
+  ggtitle("Fungi")  +
+  theme(plot.title = element_text(size=16, color = "black")) + #increase plot title size
+  theme(legend.position = "none")  #remove legend
+
+# quartz()
+airOnlysoilSpecProp_plot_ITS
+
+# Saved Nov. 4, 2025 (made for postdoc talk/exit talk)
+# saveRDS(airOnlysoilSpecProp_plot_ITS, file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlysoilSpecProp_plot_ITS.rds")
+airOnlysoilSpecProp_plot_ITS <- readRDS("~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlysoilSpecProp_plot_ITS.rds")
+
+# PHYLLOSPHERE COMPARISON
+airOnlyphylloSpecProp_plot_ITS <- ggplot(ITS_specialistsProportion_airOnly, aes(x=HabitatAir, y=phylloSpecProp, fill=HabitatAir)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  scale_fill_manual(values=c("darkgreen", "goldenrod")) +
+  geom_jitter(color="black", size=1, alpha=0.9, height = 0) +
+  scale_x_discrete(name= NULL, labels=c("forested\nmatrix", "open\npatch")) +
+  scale_y_continuous(name= "Proportion of reads from\nleaf indicator taxa", limits=c(0.00, 1.00)) + # limITS=c(25, 225) add this argument to change limITS
+  theme(axis.text=element_text(size=16, color = "black"),
+        axis.title=element_text(size=16, color = "black")) +
+  ggtitle("Fungi")  +
+  theme(plot.title = element_text(size=16, color = "black")) + #increase plot title size
+  theme(legend.position = "none")  #remove legend
+
+# quartz()
+airOnlyphylloSpecProp_plot_ITS
+
+# Saved Nov. 4, 2025 (made for postdoc talk/exit talk)
+# saveRDS(airOnlyphylloSpecProp_plot_ITS, file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlyphylloSpecProp_plot_ITS.rds")
+airOnlyphylloSpecProp_plot_ITS <- readRDS(file = "~/Desktop/PostCUJobSearch/ResearchTalk/Figures/airOnlyphylloSpecProp_plot_ITS.rds")
+airOnlyphylloSpecProp_plot_ITS
+
 # #### MAKE A TWO PANELED PLOT ###
 # # Re-shape dataframe to make proportions all in there!
 # colnames(ITS_specialistsProportion_airOnly)
@@ -310,7 +320,7 @@ unique(sort(savNamesCheck_ITS$sampleName) == sort(ITS_airSavSampNames)) #looks g
 #   theme(strip.text = element_text(size = 16))
 #
 # ITS_airOnly_phylloSoil_2panels #exported as /RobjectsSaved/ITS_airOnly_phylloSoil_2panels.pdf
-# # saveRDS(ITS_airOnly_phylloSoil_2panels, file = "RobjectsSaved/ITS_airOnly_phylloSoil_2panels_Jan8_2024.rds") #saved January 8, 2024
+# saveRDS(ITS_airOnly_phylloSoil_2panels, file = "RobjectsSaved/ITS_airOnly_phylloSoil_2panels_Jan8_2024.rds") #saved January 8, 2024
 
 
 #### SAVE ALL PLOTS ####
@@ -1249,3 +1259,4 @@ sumOf_ITSall <- sum(ITSASVabund_AirSamps_2$propASVabund[ITSASVabund_AirSamps_2$A
 sumOf_ITSall #0.3108101, so 31.1% goes below 369
 # DO THESE ADD UP TO 1, AS THEY SHOULD?
 sum(sumOf_ITSuniqueAir, sumOf_ITSairSoil, sumOf_ITSairPhyllo, sumOf_ITSall) #YES!
+
