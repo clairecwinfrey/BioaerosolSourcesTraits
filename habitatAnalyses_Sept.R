@@ -54,7 +54,7 @@ library(ggnewscale)
 
 options(scipen = 999) #I don't like scientific notation here!
 
-##### 2. SET WORKING DIRECTORY AND READ IN DATA #####
+##### 2. READ IN DATA #####
 # Read in phyloseq objects FOR JUST AIR DATA 
 # on server: 
 ## I6S ###
@@ -157,7 +157,7 @@ toAdd <- c("Myxococcia" =  "#6699CC",
            "Unclassified" = "thistle4",
            "< 2% abundance" = "lightgray")
 
-colsForClassesI6S_3 <- c(colsForClassesI6S_3, toAdd) #make sure these are compatible with ANCOM_traits_I6SandITS.R
+colsForClassesI6S_3 <- c(colsForClassesI6S_3, toAdd) 
 
 # PLOT!
 airBactClassAir.plot <- ggplot(data=airOnly_16Sr_relabun.Class.top98, aes(x=Sample, y=Abundance, fill=Class)) + theme(axis.title.y = element_text(size = 20, face = "bold")) + theme(axis.title.x = element_blank()) + theme(axis.text.x = element_text(colour = "black", size = 18, face = "bold"))
@@ -364,8 +364,6 @@ airOnly_ITS_relabun.Order.top99$Order <- gsub(pattern= "NA", x=airOnly_ITS_relab
 unique(airOnly_ITS_relabun.Order.top99$Order) #fixed
 
 # Get good, sequential colors for different orders
-# NOTE THAT THESE DO NOT MATCH ANCOM_traits_ITSandITS_Sept.R
-# Make sure colors match plots in ANCOM_traits_ITSandITS.R (here specifically color_mapping_ITSANCOMplot_2)!!
 scales::show_col(safe_colorblind_palette)
 # [1] "< 1% abundance"  "Agaricales"      "Auriculariales"  "Cantharellales"  "Capnodiales"     "Corticiales"    
 # [7] "Hymenochaetales" "Pleosporales"    "Polyporales"     "Russulales"      "Trechisporales"  "Unclassified"   
@@ -434,7 +432,8 @@ meanOrderPerSample <- airSamp_ITSr_relabun_order.df %>%
 # View(meanOrderPerSample)
 meanOrderPerSample
 
-########## STACKED BAR PLOT FOR SAMPLES X HABITAT (FOR RENDEZVOUS 2025 POSTER)
+########## STACKED BAR PLOT FOR SAMPLES X HABITAT (FOR RENDEZVOUS 2025 POSTER except that had
+# bad colors so colors are now updated!)
 airOnly_ITS_order.glom #this has has all the sample numbers for each order
 # View(as.data.frame(otu_table(airOnly_ITS_order.glom)))
 head(as.data.frame(otu_table(airOnly_ITS_order.glom)))
@@ -537,6 +536,7 @@ I6S_habitatAirOrd <- plot_ordination(airOnly_16Sr_noAirSingsDoubs_phyloseq, air_
   geom_point(size=2) +
   theme_bw() +
   theme(panel.grid = element_blank()) # remove ALL gridlines
+quartz()
 I6S_habitatAirOrd
 # saveRDS(I6S_habitatAirOrd, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_habitatAirOrd_10-17-25.rds")
 
@@ -612,6 +612,9 @@ for (i in 1:length(I6S_bySamplingDay_psList)){
 }
 # Double check!
 names(I6S_bySamplingDay_psList) == daysOutByEU
+
+# Save I6S_bySamplingDay_psList
+# saveRDS(I6S_bySamplingDay_psList, file="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/I6S_bySamplingDay_psList_Nov17_25.rds")
 
 # MAKE PHYLUM LEVEL TAXONOMY PLOTS IN A FOR LOOP
 I6S_phylumPlotInfo_list <- vector("list", length=length(I6S_bySamplingDay_psList)) # pre-allocate list to store results, with 1 spot per day
@@ -993,7 +996,6 @@ for (i in 1:length(uniqBactClass)){
 }
 bactPhylaClasses.df #this will be added to the plot to show the phylum that each class is in!
 
-# HEAT MAP NOT DONE RE-CHECKING, BUT NEED A BREAK, SO GRAYED OUT UNTIL CAN CHECK AND FIX
 # Create a named vector for label colors
 sort(unique(I6S_relabunAllSamples.ClassTop35.df$sampleType)) #"air", "phyllosphere", "soil"
 I6S_relabunAllSamples.ClassTop35.df$sampleType <- factor(I6S_relabunAllSamples.ClassTop35.df$sampleType, levels = sort(unique(I6S_relabunAllSamples.ClassTop35.df$sampleType)))
@@ -1009,30 +1011,7 @@ sqrt(c(0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)) #square root
 #View(I6S_relabunAllSamples.ClassTop35.df)
 I6S_relabunAllSamples.ClassTop35.df$AbundanceBigger <- I6S_relabunAllSamples.ClassTop35.df$Abundance + 1e-6
 
-# Get corrected order of the samples, for example, by sampling day
-colnames(I6S_relabunAllSamples.ClassTop35.df)
-I6S_relabunAllSamples.ClassTop35.df$Sample
-# Air
-I6S_AirsamplesByDay <- I6S_relabunAllSamples.ClassTop35.df %>%
-  filter(sampleType == "air") %>%
-  arrange(daysOut)
-dim(cbind(I6S_AirsamplesByDay$Sample,I6S_AirsamplesByDay$daysOut))
-I6S_AirsamplesByDay$Sample
-# Soil
-I6S_SoilSamplesByEU <- I6S_relabunAllSamples.ClassTop35.df %>%
-  filter(sampleType == "soil") %>%
-  arrange(EU)
-cbind(I6S_SoilSamplesByEU$Sample,I6S_SoilSamplesByEU$EU)
-I6S_SoilSamplesByEU$Sample
-# Leaf
-I6S_leafSamplesBySpeciesEU <- I6S_relabunAllSamples.ClassTop35.df %>%
-  filter(sampleType == "phyllosphere") %>%
-  arrange(PlantSpecies, EU)
-cbind(I6S_leafSamplesBySpeciesEU$Sample,I6S_leafSamplesBySpeciesEU$EU, I6S_leafSamplesBySpeciesEU$PlantSpecies)
-I6S_leafSamplesBySpeciesEU$Sample
-
-I6S_sampleOrder <- c(unique(I6S_AirsamplesByDay$Sample), unique(I6S_leafSamplesBySpeciesEU$Sample), unique(I6S_SoilSamplesByEU$Sample))
-I6S_relabunAllSamples.ClassTop35.df$Sample <- factor(I6S_relabunAllSamples.ClassTop35.df$Sample, levels = c(I6S_sampleOrder))
+# I6S_relabunAllSamples.ClassTop35.df$Sample <- factor(I6S_relabunAllSamples.ClassTop35.df$Sample, levels = c(I6S_sampleOrder))
 # Edit this to make it smaller to work with
 I6S_relabun_class35_small <- I6S_relabunAllSamples.ClassTop35.df[,colnames(I6S_relabunAllSamples.ClassTop35.df) %in%
                                                                    c("Sample", "Phylum", "Class", "Abundance", "sampleType")]
@@ -1041,17 +1020,15 @@ I6S_relabun_class35_small <- I6S_relabunAllSamples.ClassTop35.df[,colnames(I6S_r
 # I6S_relabunAllSamples.ClassTop35.df <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_relabun_class35_small.df.RData")
 # find duplicates for the exact tile positions used by the plot
 I6S_relabun_class35_small %>% count(sampleType, Sample, Class) %>% filter(n > 1)
-
-is.factor(I6S_relabun_class35_small$Sample)
 sampLabs <- c(
-  air  = "bioaerosols",
+  air  = "bioaerosol",
   phyllosphere = "foliar surfaces",
   soil        = "soil")
 
 # Square root -- presented in BROADN meeting AND in storyboardingPlots_Summer_2024
 I6SClass_heatmap_faceted_sqrt <- ggplot(I6S_relabun_class35_small, aes(Sample, Class, fill = sampleType, alpha= Abundance)) +
-  geom_tile(width = 1, height = 1,                    #fill cell (defaults to ~0.9 category)
-            colour = "white", linewidth = 0.05,        #more defined grid
+  geom_tile(width = 1, height = 1,                    #fill the cell (change b/c defaults to ~0.9 )
+            colour = "white", linewidth = 0.05,        #define grid more
             linejoin = "mitre") +
   theme_bw() +
   facet_grid(. ~ sampleType, scales = "free_x", space = "free_x", labeller = labeller(sampleType = sampLabs)) +
@@ -1059,6 +1036,7 @@ I6SClass_heatmap_faceted_sqrt <- ggplot(I6S_relabun_class35_small, aes(Sample, C
   scale_alpha_continuous(trans= "sqrt", range = c(0.01,1.0)) +
   scale_fill_manual(values = colorsSampTypeDarker, name = "sampleType") +
   theme(
+    axis.text.y = element_text(size= 8, color="black"),
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
     axis.title.x = element_blank(),
@@ -1066,14 +1044,14 @@ I6SClass_heatmap_faceted_sqrt <- ggplot(I6S_relabun_class35_small, aes(Sample, C
     legend.title = element_blank(),
     panel.grid.major = element_blank(),  #remove major gridlines
     panel.grid.minor = element_blank(), #remove minor gridlines
-    strip.text.x = element_text(size = 12), #increase font size of facet labels
+    strip.text.x = element_text(size = 8.5, color = "black"), #font size of facet labels
     legend.position = "none"
   )
-# quartz()
-I6SClass_heatmap_faceted_sqrt #now ordered by sampling day for air, plant species for phyllosphere,
-# and EU for soil
-# 
-# 
+# quartz(width = 5.5, height = 4, family = "Helvetica")
+I6SClass_heatmap_faceted_sqrt 
+
+# saveRDS(I6SClass_heatmap_faceted_sqrt, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6SClass_heatmap_faceted_sqrt_10-26-2025.rds")
+
 # soilVerrucosIndex <- intersect(which(I6S_relabun_class35_small$sampleType == "soil"), which(I6S_relabun_class35_small$Class == "Verrucomicrobiae"))
 # soilKtedonoIndex <- intersect(which(I6S_relabun_class35_small$sampleType == "soil"), which(I6S_relabun_class35_small$Class == "Ktedonobacteria"))
 # sort(I6S_relabun_class35_small$Abundance[soilVerrucosIndex])
@@ -1084,141 +1062,147 @@ I6SClass_heatmap_faceted_sqrt #now ordered by sampling day for air, plant specie
 # airVerrucosIndex <- intersect(which(I6S_relabun_class35_small$sampleType == "air"), which(I6S_relabun_class35_small$Class == "Verrucomicrobiae"))
 # sort(I6S_relabun_class35_small$Abundance[airVerrucosIndex])
 # 
-# saveRDS(I6SClass_heatmap_faceted_sqrt, file = "Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6SClass_heatmap_faceted_sqrt.rds")
-# 
+
 # ############# FUNGI #############
-# # (ORDER LEVEL OF TAXONOMIC RESOLUTION)
-# length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "air"))
-# length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "phyllosphere"))
-# length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "soil"))
-# length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "soil"))
-# unique(sample_data(allITSr_noAirSingsDoubs.ps)$PlantSpecies) #30 plant species
-# 
-# allITSr_noAirSingsDoubs.ps.order.glom <-  phyloseq::tax_glom(allITSr_noAirSingsDoubs.ps, taxrank = "Order") 
-# length(unique(tax_table(allITSr_noAirSingsDoubs.ps.order.glom)[,3])) #133 orders
-# unique(colSums(as.data.frame(as.matrix(otu_table(allITSr_noAirSingsDoubs.ps.order.glom))))) # ~8500, what rarefied to. 
-# # Some lower because I removed singletons and doubletons
-# 
-# # Transform sample counts on just glommed samples 
-# allITSr_noAirSingsDoubs.ps.order.0 <- transform_sample_counts(allITSr_noAirSingsDoubs.ps.order.glom , function(x) x / sum(x) )
-# #ASVs in this above are just a representative from each order
-# unique(colSums(as.data.frame(as.matrix(otu_table(allITSr_noAirSingsDoubs.ps.order.0))))) #all 1 now!
-# 
-# # Make it all into one dataframe
-# allITSr_relabunAllSamples.order.df <-psmelt(allITSr_noAirSingsDoubs.ps.order.0)
-# #View(allITSr_relabunAllSamples.order.df)
-# unique(allITSr_relabunAllSamples.order.df$Order) #133 unique orders
-# 
-# # Tidy up the dataframe a little bit before plotting
-# unique(allITSr_relabunAllSamples.order.df$Order) #fixed
-# # Clean up name of one of the orders' names 
-# allITSr_relabunAllSamples.order.df$Order <- gsub(pattern= "_ord_Incertae_sedis", x=allITSr_relabunAllSamples.order.df$Order, replacement = ", inc. sed.")
-# # Remove NAs
-# allITSr_relabunAllSamples.order.df <- allITSr_relabunAllSamples.order.df[-which(allITSr_relabunAllSamples.order.df$Order == "NA"),]
-# sort(unique(allITSr_relabunAllSamples.order.df$Order)) #fixed
-# 
-# # Which are top orders to include?
-# colnames(allITSr_relabunAllSamples.order.df)
-# ITS_orderAbundAcrossAll <- allITSr_relabunAllSamples.order.df %>% 
-#   group_by(Order) %>% 
-#   summarise(orderSum = sum(Abundance)) %>% 
-#   arrange(desc(orderSum))
-# ITS_orderAbundAcrossAll
-# #View(ITS_orderAbundAcrossAll)
-# # Across air
-# ITS_orderAbundAcrossSampleTypes <- allITSr_relabunAllSamples.order.df %>% 
-#   group_by(Order, sampleType) %>% 
-#   summarise(orderSumType = sum(Abundance)) %>% 
-#   arrange(sampleType, desc(orderSumType))
-# ITS_orderAbundAcrossSampleTypes
-# # View(ITS_orderAbundAcrossSampleTypes)
-# 
-# # Will include top 35 based on abundance in air
-# ITS_top35Ords_byAir <- ITS_orderAbundAcrossSampleTypes[1:35,]
-# # View(ITS_top35Ords_byAir)
-# ITS_top35Ords_byAirNames <- ITS_top35Ords_byAir$Order
-# ITS_top35Ords_byAirNames
-# 
-# # Trim allITSr_relabunAllSamples.order.df to only have these top 35
-# class(allITSr_relabunAllSamples.order.df$Order)
-# ITS_relabunAllSamples.orderTop35.df <- allITSr_relabunAllSamples.order.df[allITSr_relabunAllSamples.order.df$Order %in% ITS_top35Ords_byAirNames,]
-# unique(ITS_relabunAllSamples.orderTop35.df$Order %in% ITS_top35Ords_byAirNames) #great, these now match!
-# # Arrange alphabetically by phylum and then within class, order
-# ITS_relabunAllSamples.orderTop35.df <- ITS_relabunAllSamples.orderTop35.df %>% 
-#   arrange(desc(Class), desc(Order))
-# # View(ITS_relabunAllSamples.orderTop35.df)
-# 
-# # Make order into a factor. It's ordered, reverse alphabetically, by Order and then by classes within each order. Reverse
-# # alphabetically so that the alphabetically first taxa appear at the top, i.e., further up on y-axis.
-# ITS_relabunAllSamples.orderTop35.df$Order <- factor(ITS_relabunAllSamples.orderTop35.df$Order, levels = unique(ITS_relabunAllSamples.orderTop35.df$Order))
-# uniqFungOrders <- as.character(unique(ITS_relabunAllSamples.orderTop35.df$Order)) #remove factor and get names 
-# uniqFungOrders
-# 
-# # What classes are each of these orders in?
-# fungClassOrders.df <- as.data.frame(matrix(ncol=2, nrow = length(uniqFungOrders)))
-# colnames(fungClassOrders.df) <- c("Class", "Order")
-# for (i in 1:length(uniqFungOrders)){
-#   fungClassOrders.df[i,1] <- unique(ITS_relabunAllSamples.orderTop35.df$Class[which(ITS_relabunAllSamples.orderTop35.df$Order %in% uniqFungOrders[i])])
-#   fungClassOrders.df[i,2] <- uniqFungOrders[i]
-# }
-# fungClassOrders.df #this will be added to the plot to show class!
-# length(unique(fungClassOrders.df$Order))
-# 
-# ## Create a named vector for label colors
-# ITS_relabunAllSamples.orderTop35.df$sampleType <- factor(ITS_relabunAllSamples.orderTop35.df$sampleType, levels = sort(unique(ITS_relabunAllSamples.orderTop35.df$sampleType)))
-# 
+# (ORDER LEVEL OF TAXONOMIC RESOLUTION)
+length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "air"))
+length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "phyllosphere"))
+length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "soil"))
+length(which(sample_data(allITSr_noAirSingsDoubs.ps)$sampleType== "soil"))
+unique(sample_data(allITSr_noAirSingsDoubs.ps)$PlantSpecies) #30 plant species
+
+allITSr_noAirSingsDoubs.ps.order.glom <-  phyloseq::tax_glom(allITSr_noAirSingsDoubs.ps, taxrank = "Order")
+length(unique(tax_table(allITSr_noAirSingsDoubs.ps.order.glom)[,3])) #133 orders
+unique(colSums(as.data.frame(as.matrix(otu_table(allITSr_noAirSingsDoubs.ps.order.glom))))) # ~8500, what rarefied to.
+# Some lower because I removed singletons and doubletons
+
+# Transform sample counts on just glommed samples
+allITSr_noAirSingsDoubs.ps.order.0 <- transform_sample_counts(allITSr_noAirSingsDoubs.ps.order.glom , function(x) x / sum(x) )
+#ASVs in this above are just a representative from each order
+unique(colSums(as.data.frame(as.matrix(otu_table(allITSr_noAirSingsDoubs.ps.order.0))))) #all 1 now!
+
+# Make it all into one dataframe
+allITSr_relabunAllSamples.order.df <-psmelt(allITSr_noAirSingsDoubs.ps.order.0)
+#View(allITSr_relabunAllSamples.order.df)
+unique(allITSr_relabunAllSamples.order.df$Order) #133 unique orders
+
+# Tidy up the dataframe a little bit before plotting
+unique(allITSr_relabunAllSamples.order.df$Order) #fixed
+# Clean up name of one of the orders' names
+allITSr_relabunAllSamples.order.df$Order <- gsub(pattern= "_ord_Incertae_sedis", x=allITSr_relabunAllSamples.order.df$Order, replacement = ", inc. sed.")
+# Remove NAs
+allITSr_relabunAllSamples.order.df <- allITSr_relabunAllSamples.order.df[-which(allITSr_relabunAllSamples.order.df$Order == "NA"),]
+sort(unique(allITSr_relabunAllSamples.order.df$Order)) #fixed
+
+# Which are top orders to include?
+colnames(allITSr_relabunAllSamples.order.df)
+ITS_orderAbundAcrossAll <- allITSr_relabunAllSamples.order.df %>%
+  group_by(Order) %>%
+  summarise(orderSum = sum(Abundance)) %>%
+  arrange(desc(orderSum))
+ITS_orderAbundAcrossAll
+#View(ITS_orderAbundAcrossAll)
+# Across air
+ITS_orderAbundAcrossSampleTypes <- allITSr_relabunAllSamples.order.df %>%
+  group_by(Order, sampleType) %>%
+  summarise(orderSumType = sum(Abundance)) %>%
+  arrange(sampleType, desc(orderSumType))
+ITS_orderAbundAcrossSampleTypes
+# View(ITS_orderAbundAcrossSampleTypes)
+
+# Will include top 35 based on abundance in air
+ITS_top35Ords_byAir <- ITS_orderAbundAcrossSampleTypes[1:35,]
+# View(ITS_top35Ords_byAir)
+ITS_top35Ords_byAirNames <- ITS_top35Ords_byAir$Order
+ITS_top35Ords_byAirNames
+
+# Trim allITSr_relabunAllSamples.order.df to only have these top 35
+class(allITSr_relabunAllSamples.order.df$Order)
+ITS_relabunAllSamples.orderTop35.df <- allITSr_relabunAllSamples.order.df[allITSr_relabunAllSamples.order.df$Order %in% ITS_top35Ords_byAirNames,]
+unique(ITS_relabunAllSamples.orderTop35.df$Order %in% ITS_top35Ords_byAirNames) #great, these now match!
+# Arrange alphabetically by phylum and then within class, order
+ITS_relabunAllSamples.orderTop35.df <- ITS_relabunAllSamples.orderTop35.df %>%
+  arrange(desc(Class), desc(Order))
+# View(ITS_relabunAllSamples.orderTop35.df)
+# Make "Microbotryomycetes, inc. sed." and "Agaricomycetes, inc. sed." without inc sed and add a note in the figure legend (so that this fits!)
+ITS_relabunAllSamples.orderTop35.df$Order <- gsub(pattern= ", inc. sed.", x=ITS_relabunAllSamples.orderTop35.df$Order, replacement = "")
+
+# Make order into a factor. It's ordered, reverse alphabetically, by Order and then by classes within each order. Reverse
+# alphabetically so that the alphabetically first taxa appear at the top, i.e., further up on y-axis.
+ITS_relabunAllSamples.orderTop35.df$Order <- factor(ITS_relabunAllSamples.orderTop35.df$Order, levels = unique(ITS_relabunAllSamples.orderTop35.df$Order))
+uniqFungOrders <- as.character(unique(ITS_relabunAllSamples.orderTop35.df$Order)) #remove factor and get names
+uniqFungOrders
+
+# What classes are each of these orders in?
+fungClassOrders.df <- as.data.frame(matrix(ncol=2, nrow = length(uniqFungOrders)))
+colnames(fungClassOrders.df) <- c("Class", "Order")
+for (i in 1:length(uniqFungOrders)){
+  fungClassOrders.df[i,1] <- unique(ITS_relabunAllSamples.orderTop35.df$Class[which(ITS_relabunAllSamples.orderTop35.df$Order %in% uniqFungOrders[i])])
+  fungClassOrders.df[i,2] <- uniqFungOrders[i]
+}
+fungClassOrders.df #this will be added to the plot to show class!
+length(unique(fungClassOrders.df$Order))
+# View(fungClassOrders.df)
+
+## Create a named vector for label colors
+ITS_relabunAllSamples.orderTop35.df$sampleType <- factor(ITS_relabunAllSamples.orderTop35.df$sampleType, levels = sort(unique(ITS_relabunAllSamples.orderTop35.df$sampleType)))
+
 # # Get corrected order of the samples, for example, by sampling day
 # colnames(ITS_relabunAllSamples.orderTop35.df)
 # ITS_relabunAllSamples.orderTop35.df$Sample
 # # Air
-# ITS_AirsamplesByDay <- ITS_relabunAllSamples.orderTop35.df %>% 
-#   filter(sampleType == "air") %>% 
+# ITS_AirsamplesByDay <- ITS_relabunAllSamples.orderTop35.df %>%
+#   filter(sampleType == "air") %>%
 #   arrange(daysOut)
 # dim(cbind(ITS_AirsamplesByDay$Sample,ITS_AirsamplesByDay$daysOut))
 # ITS_AirsamplesByDay$Sample
 # # Soil
-# ITS_SoilSamplesByEU <- ITS_relabunAllSamples.orderTop35.df %>% 
-#   filter(sampleType == "soil") %>% 
+# ITS_SoilSamplesByEU <- ITS_relabunAllSamples.orderTop35.df %>%
+#   filter(sampleType == "soil") %>%
 #   arrange(EU)
 # cbind(ITS_SoilSamplesByEU$Sample,ITS_SoilSamplesByEU$EU)
 # ITS_SoilSamplesByEU$Sample
 # # Leaf
-# ITS_leafSamplesBySpeciesEU <- ITS_relabunAllSamples.orderTop35.df %>% 
-#   filter(sampleType == "phyllosphere") %>% 
+# ITS_leafSamplesBySpeciesEU <- ITS_relabunAllSamples.orderTop35.df %>%
+#   filter(sampleType == "phyllosphere") %>%
 #   arrange(PlantSpecies, EU)
 # cbind(ITS_leafSamplesBySpeciesEU$Sample,ITS_leafSamplesBySpeciesEU$EU, ITS_leafSamplesBySpeciesEU$PlantSpecies)
 # ITS_leafSamplesBySpeciesEU$Sample
 # 
 # ITS_sampleOrder <- c(unique(ITS_AirsamplesByDay$Sample), unique(ITS_leafSamplesBySpeciesEU$Sample), unique(ITS_SoilSamplesByEU$Sample))
 # ITS_relabunAllSamples.orderTop35.df$Sample <- factor(ITS_relabunAllSamples.orderTop35.df$Sample, levels = c(ITS_sampleOrder))
-# 
-# # Save main object so that can edit heat maps quickly if need be. 
-# # saveRDS(ITS_relabunAllSamples.orderTop35.df, file = "ITS_relabunAllSamples.orderTop35.df.RData") #saved 12/2/2024
-# 
-# # Make heat map!
-# # Square Root
-# ITSOrder_heatmap_faceted_Sqrt <- ggplot(ITS_relabunAllSamples.orderTop35.df, aes(Sample, Order, fill = sampleType, alpha= Abundance)) +
-#   geom_tile() +
-#   theme_bw() + 
-#   facet_grid(. ~ sampleType, scales = "free_x", space = "free") +
-#   scale_alpha_continuous(trans= "sqrt", range = c(0.0,1.0)) +
-#   scale_fill_manual(values = colorsSampTypeDarker, name = "sampleType") +
-#   #scale_fill_brewer(palette = "Set1"
-#   #       , name = "sampleType") +
-#   theme(
-#     axis.text.x = element_blank(),  
-#     axis.ticks.x = element_blank(), 
-#     axis.title.x = element_blank(),
-#     axis.title.y = element_blank(),
-#     legend.title = element_blank(),
-#     panel.grid.major = element_blank(),  #remove major gridlines
-#     panel.grid.minor = element_blank(), #remove minor gridlines
-#     strip.text.x = element_text(size = 12), #increase font size of facet labels
-#     legend.position = "none"
-#     )
-# 
-# # quartz()
-# ITSOrder_heatmap_faceted_Sqrt
+
+# Save main object so that can edit heat maps quickly if need be.
+# saveRDS(ITS_relabunAllSamples.orderTop35.df, file = "ITS_relabunAllSamples.orderTop35.df.RData") #saved 12/2/2024
+
+# Make heat map!
+# Square root -- presented in BROADN meeting AND in storyboardingPlots_Summer_2024
+ITSOrder_heatmap_faceted_sqrt <- ggplot(ITS_relabunAllSamples.orderTop35.df, aes(Sample, Order, fill = sampleType, alpha= Abundance)) +
+  geom_tile(width = 1, height = 1,                    #fill the cell (change b/c defaults to ~0.9 )
+            colour = "white", linewidth = 0.05,        #define grid more
+            linejoin = "mitre") +
+  theme_bw() +
+  facet_grid(. ~ sampleType, scales = "free_x", space = "free_x", labeller = labeller(sampleType = sampLabs)) +
+  scale_y_discrete(expand = expansion(add = 0.5))  +
+  scale_alpha_continuous(trans= "sqrt", range = c(0.01,1.0)) +
+  scale_fill_manual(values = colorsSampTypeDarker, name = "sampleType") +
+  theme(
+    axis.text.y = element_text(size= 8, color="black"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.title = element_blank(),
+    panel.grid.major = element_blank(),  #remove major gridlines
+    panel.grid.minor = element_blank(), #remove minor gridlines
+    strip.text.x = element_text(size = 8.5, color = "black"), #font size of facet labels
+    legend.position = "none"
+  )
+# quartz(width = 5.5, height = 9, family = "Helvetica")
+grid.arrange(ITSOrder_heatmap_faceted_sqrt, I6SClass_heatmap_faceted_sqrt, nrow =2)
+
+# saveRDS(ITSOrder_heatmap_faceted_sqrt, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITSOrder_heatmap_faceted_sqrt-10-26-2025.rds")
+
 
 ############# BACTERIA #############
 airOnly_16Sr_noAirSingsDoubs_phyloseq #phyloseq object to use that only has air data 
@@ -1517,21 +1501,21 @@ colnames(I6SqPCR_Plate1_trimmed[1:7]) == colnames(I6SqPCR_Plate2_trimmed)
 I6SqPCRdata <- rbind(I6SqPCR_Plate1_trimmed[,1:7], I6SqPCR_Plate2_trimmed)
 nrow(I6SqPCRdata)
 
+# This is where script really varies from original habitatAnalyses_Sept.R
+head(I6SqPCRdata)
+I6SqPCRdata$I6Scopies <- I6SqPCRdata$GenomeEquiv*7
+
 # Make a copy and re-organize so that it can be put in table in the supplementary data
 I6SqPCRdata_forTable <- I6SqPCRdata
 # Make sample name numeric so that it can be arranged!
 I6SqPCRdata_forTable$sampleName <- as.numeric(I6SqPCRdata_forTable$sampleName)
 # Round these to the nearest whole number (which was ultimately also done in the statistical analyses!)
-I6SqPCRdata_forTable$GenomeEquiv <- round(I6SqPCRdata_forTable$GenomeEquiv)
+I6SqPCRdata_forTable$I6Scopies <- round(I6SqPCRdata_forTable$I6Scopies)
 I6SqPCRdata_forTable <- I6SqPCRdata_forTable %>% 
   arrange(sampleName)  #arrange by sample name
 # View(I6SqPCRdata_forTable)
-# write.csv(I6SqPCRdata_forTable, file= "I6SqPCRdata_forTable.csv") #written Nov 13, 2024 and exported to own computer 
+# write.csv(I6SqPCRdata_forTable, file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6SqPCRdata_forTable_Nov17-2025.csv") #written Nov 17, 2025 
 # to make supplemental figure (but note not ultimate form used since I will bind bacterial and fungal later)
-# Plot the non-control samples (only those that made it through filters employed 
-# earlier)
-#quartz()
-plot(sort(I6SqPCRdata$GenomeEquiv))
 
 # ### BRIEFLY CHECK OUT CONTROLS ### to fix this section, save  all16S_rarefied.ps in full16S_EDA_part1_Sept.R and then load here
 # all16Sr_Controls.ps <- subset_samples(all16S_rarefied.ps, isControl == "control") #new phyloseq object without controls/blanks
@@ -1587,10 +1571,10 @@ names(I6S_qPCR_dayList) <- names(I6S_byDaySampNamesHabitat)
 for (i in 1:length(I6S_byDaySampNamesHabitat)) {
   # Extract the sample names from the current element in the list
   sample_names <- I6S_byDaySampNamesHabitat[[i]]$sampleName
-
+  
   # Subset df1 to only include rows where sampleName matches those in the current list element
   day_subset <- I6SqPCRdata[I6SqPCRdata$sampleName %in% sample_names, ]
-
+  
   # Merge the subset of df1 with the current element of list1 based on sampleName
   # Using all.x = TRUE to keep all rows from the list1 data frame in case there are unmatched sampleNames
   I6S_qPCR_dayList[[i]] <- merge(I6S_byDaySampNamesHabitat[[i]], day_subset, by = "sampleName", all.x = TRUE)
@@ -1613,7 +1597,7 @@ length(I6S_qPCR_dayList)
 
 # Can do a little in a for loop:
 for (k in 1:length(I6S_qPCR_PlotList)) {
-  I6S_qPCR_PlotList[[k]] <- ggplot(data=I6S_qPCR_dayList[[k]], aes(x=HabitatAir, y=GenomeEquiv, fill=HabitatAir)) +
+  I6S_qPCR_PlotList[[k]] <- ggplot(data=I6S_qPCR_dayList[[k]], aes(x=HabitatAir, y=I6Scopies, fill=HabitatAir)) +
     geom_boxplot() +
     theme(axis.title.y = element_text(size = 20, face = "bold")) + theme(axis.title.x = element_blank()) +
     scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) +
@@ -1630,25 +1614,13 @@ I6S_qPCR_dayList[[11]]
 # quartz()
 do.call(gridExtra::grid.arrange, c(I6S_qPCR_PlotList, ncol = 4, nrow = 4))
 
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[1]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[2]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[5]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[8]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[10]], mean)
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[1]], mean)
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[2]], mean)
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[5]], mean)
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[8]], mean)
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[10]], mean)
 I6S_qPCR_dayList[[13]]
-aggregate(GenomeEquiv ~ HabitatAir ,data = I6S_qPCR_dayList[[13]], mean)
-
-# # TEST #
-# ggplot(data=I6S_qPCR_dayList[[1]], aes(x=HabitatAir, y=GenomeEquiv, fill=HabitatAir)) +
-#   geom_boxplot() +
-#   theme(axis.title.y = element_text(size = 20, face = "bold")) + theme(axis.title.x = element_blank()) +
-#   scale_fill_manual(values =c("forest" = "goldenrod", "savanna" = "forestgreen")) +
-#   geom_point(color="black", size=2, alpha=0.9) +
-#   theme(axis.text.x = element_text(colour = "black", size = 18, face = "bold")) +
-#   geom_bar(aes(), stat="identity", position="fill") +
-#   theme_bw() +
-#   theme(legend.position="none")
-
+aggregate(I6Scopies ~ HabitatAir ,data = I6S_qPCR_dayList[[13]], mean)
 
 ################# ITS #################
 ### ONLY SAMPLES (no controls) ###
@@ -1672,23 +1644,26 @@ colnames(ITSqPCR_Plate1_trimmed[1:7]) == colnames(ITSqPCR_Plate2_trimmed)
 ITSqPCRdata <- rbind(ITSqPCR_Plate1_trimmed[,1:7], ITSqPCR_Plate2_trimmed)
 nrow(ITSqPCRdata) #110 like number of samples
 
+# Get ITS region copies by multiplying by 38
+ITSqPCRdata$ITScopies <- ITSqPCRdata$GenomeEquiv*38
+ITSqPCRdata$ITScopies <- round(ITSqPCRdata$ITScopies)
+
 # Make a copy and re-organize so that it can be put in table in the supplementary data
 ITSqPCRdata_forTable <- ITSqPCRdata
 # Make sample name numeric so that it can be arranged!
 ITSqPCRdata_forTable$sampleName <- as.numeric(ITSqPCRdata_forTable$sampleName)
 # Round these to the nearest whole number (which was ultimtely also done in the statistical analyses!)
-ITSqPCRdata_forTable$GenomeEquiv <- round(ITSqPCRdata_forTable$GenomeEquiv)
 ITSqPCRdata_forTable <- ITSqPCRdata_forTable %>% 
   arrange(sampleName)  #arrange by sample name
 # View(ITSqPCRdata_forTable)
-# write.csv(ITSqPCRdata_forTable, file= "ITSqPCRdata_forTable.csv") #written Nov 13, 2024 and exported to own computer 
-# to make supplemental figure (but note not final way of doing it since I ended up making one plot for fungal and bacterial metadata)
+# write.csv(ITSqPCRdata_forTable, file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITSqPCRdata_forTable_Nov17-2025.csv") #written Nov 17, 2025 
+# to make supplemental figure (but note not ultimate form used since I will bind bacterial and fungal later)
 
 # Plot the non-control samples (only those that made it through filters employed 
 # earlier)
 #quartz()
-plot(sort(ITSqPCRdata$GenomeEquiv))
-plot(sort(log(ITSqPCRdata$GenomeEquiv)))
+plot(sort(ITSqPCRdata$ITScopies))
+plot(sort(log(ITSqPCRdata$ITScopies)))
 
 ### PLOT ITS QPCR DATA BY DAY! (to match the taxonomy plots above) ###
 head(ITSqPCRdata)
@@ -1752,7 +1727,7 @@ names(ITS_qPCR_dayList) <- names(ITS_qPCR_dayList)
 
 # Can do a little in a for loop:
 for (k in 1:length(ITS_qPCR_PlotList)) {
-  ITS_qPCR_PlotList[[k]] <- ggplot(data=ITS_qPCR_dayList[[k]], aes(x=HabitatAir, y=GenomeEquiv, fill=HabitatAir)) + 
+  ITS_qPCR_PlotList[[k]] <- ggplot(data=ITS_qPCR_dayList[[k]], aes(x=HabitatAir, y=ITScopies, fill=HabitatAir)) + 
     geom_boxplot() +
     theme(axis.title.y = element_text(size = 20, face = "bold")) + theme(axis.title.x = element_blank()) + 
     scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) + 
@@ -1767,13 +1742,13 @@ for (k in 1:length(ITS_qPCR_PlotList)) {
 # quartz()
 do.call(grid.arrange, c(ITS_qPCR_PlotList, ncol = 4, nrow = 4))
 
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[1]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[2]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[5]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[8]], mean)
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[10]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[1]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[2]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[5]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[8]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[10]], mean)
 ITS_qPCR_dayList[[13]]
-aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[13]], mean)
+aggregate(ITScopies ~ HabitatAir ,data = ITS_qPCR_dayList[[13]], mean)
 
 ##### SECOND WAY OF MAKING QPCR PLOTS ######
 ###### 16S ######
@@ -1782,8 +1757,8 @@ aggregate(GenomeEquiv ~ HabitatAir ,data = ITS_qPCR_dayList[[13]], mean)
 
 # MAKE OBJECT THAT HAS ALL DATA IN ONE:
 allI6S_qPCR <- do.call(rbind, I6S_qPCR_dayList)
-aggregate(GenomeEquiv ~ HabitatAir, data = allI6S_qPCR, mean)
-mean(allI6S_qPCR$GenomeEquiv)
+aggregate(I6Scopies ~ HabitatAir, data = allI6S_qPCR, mean)
+mean(allI6S_qPCR$I6Scopies)
 #View(allI6S_qPCR)
 allI6S_qPCR <- allI6S_qPCR %>% 
   as.data.frame() %>% 
@@ -1791,6 +1766,7 @@ allI6S_qPCR <- allI6S_qPCR %>%
 # Remove numbers and dots that signifed numbers in dataframe 
 allI6S_qPCR$samplingDay <- gsub(x= allI6S_qPCR$samplingDay, pattern = "\\.\\d+", replacement = "")
 # View(allI6S_qPCR)
+allI6S_qPCR$I6Scopies <- round(allI6S_qPCR$I6Scopies)
 
 # Add in EU data. First get which EU was was sampled when
 dayEU_df <- as.data.frame(matrix(ncol =2, nrow= length(ITS_bySamplingDay_psList)))
@@ -1821,15 +1797,16 @@ allI6S_qPCR <- allI6S_qPCR %>%
 
 # PLOT IT:
 # Make plot:
-allI6S_qPCR_byHabitat <- ggplot(data=allI6S_qPCR, aes(x=HabitatAir, y=GenomeEquiv, fill=HabitatAir)) + 
+allI6S_qPCR_byHabitat <- ggplot(data=allI6S_qPCR, aes(x=HabitatAir, y=I6Scopies, fill=HabitatAir)) + 
   geom_boxplot() +
-  scale_y_log10(name = "Bacterial genome equivalents", breaks = c(1e+03, 1e+04),  labels = c("1e+03", "1e+04")) +  # Apply logarithmic scale
+  scale_y_log10(name = "16S copies (bacteria)", breaks = c(1e+03, 1e+04),  labels = c("1e+03", "1e+04")) +  # Apply logarithmic scale
   labs(x= NULL) +
   scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) + 
   geom_jitter(color="black", size=2, alpha=0.9, height = 0, width = 0.35) + 
   theme_bw() +
   theme(
     legend.position="none",
+    panel.grid = element_blank(),
     axis.title.x = element_blank(),  # Remove x-axis title
     axis.title.y = element_text(size = 16),  
     axis.text.x = element_text(colour = "black", size = 14)  #x-axis tick labels
@@ -1841,7 +1818,7 @@ allI6S_qPCR_byHabitat
 ###### ITS ######
 # MAKE OBJECT THAT HAS ALL DATA IN ONE, WITH Y-AXIS ON LOG SCALE:
 allITS_qPCR <- do.call(rbind, ITS_qPCR_dayList)
-mean(allITS_qPCR$GenomeEquiv)
+mean(allITS_qPCR$ITScopies) #5605719, that's pretty high!
 
 #View(allITS_qPCR)
 allITS_qPCR <- allITS_qPCR %>% 
@@ -1865,9 +1842,9 @@ allITS_qPCR <- allITS_qPCR %>%
 # View(allITS_qPCR)
 
 # PLOT IT:
-allITS_qPCR_byHabitat <- ggplot(data=allITS_qPCR, aes(x=HabitatAir, y=GenomeEquiv, fill=HabitatAir)) + 
+allITS_qPCR_byHabitat <- ggplot(data=allITS_qPCR, aes(x=HabitatAir, y=ITScopies, fill=HabitatAir)) + 
   geom_boxplot() +
-  scale_y_log10(name = "Fungal genome equivalents", labels = scales::scientific) +  # Apply logarithmic scale
+  scale_y_log10(name = "ITS copies (fungi)", labels = scales::scientific) +  # Apply logarithmic scale
   labs(x= NULL) +
   scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) + 
   geom_jitter(color="black", size=2, alpha=0.9, height = 0, width = 0.35) + 
@@ -1887,54 +1864,52 @@ allITS_qPCR_byHabitat
 grid.arrange(allITS_qPCR_byHabitat, allI6S_qPCR_byHabitat) #saved these plots (from Quartz window) as "qPCR_allDaysBoxplots"
 
 # Save and export 
-# saveRDS(allITS_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allITS_qPCR_byHabitat_09-21-2025.rds")
-# saveRDS(allI6S_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allI6S_qPCR_byHabitat_09-21-2025.rds")
+# saveRDS(allITS_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allITS_qPCR_byHabitat_11-17-2025.rds")
+# saveRDS(allI6S_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allI6S_qPCR_byHabitat_11-17-2025.rds")
 
 ################# QPCR STATISTICS #################
 ######### 16S #########
 ### 1. SET UP AND CHECKING
 head(allI6S_qPCR)
-unique(is.na(allI6S_qPCR$GenomeEquiv)) #no NAs
+unique(is.na(allI6S_qPCR$I6Scopies)) #no NAs
 unique(is.na(allI6S_qPCR$HabitatAir)) #no NAs
 # Make everything that needs to be a factor into a factor (especially important for the GLMMs below)
 colnames(allI6S_qPCR)
 allI6S_qPCR$HabitatAir <- as.factor(allI6S_qPCR$HabitatAir)
 allI6S_qPCR$samplingDay <- as.factor(allI6S_qPCR$samplingDay)
 allI6S_qPCR$EU <- as.factor(allI6S_qPCR$EU)
-allI6S_qPCR$GenomeEquiv <- as.numeric(allI6S_qPCR$GenomeEquiv)
+allI6S_qPCR$I6Scopies <- as.numeric(allI6S_qPCR$I6Scopies)
 
 ### 2. SIMPLE T-TEST/WILCOXON (NOT REPORTED IN MANUSCRIPT SINCE ENDED UP USING MORE COMPLICATED MODELS BELOW ###
 # Check to see if volume is normally distributed with Shapiro-Wilk test
-shapiro.test(x = allI6S_qPCR$GenomeEquiv) #W = 0.7224, p-value = 0.00000000002626 these data are NOT normal (reject null that is normal)
+shapiro.test(x = allI6S_qPCR$I6Scopies) #W = 0.7224, p-value = 0.00000000002626 these data are NOT normal (reject null that is normal)
 # Does log transforming these make them normal (this also matches the likely plots...). YES!
 # Q-Q plot - looking much better and shapiro tests confirms that normal once log-transformed!
-qqnorm(allI6S_qPCR$GenomeEquiv)
-qqline(allI6S_qPCR$GenomeEquiv)
-qqnorm(log(allI6S_qPCR$GenomeEquiv))
-qqline(log(allI6S_qPCR$GenomeEquiv))
-shapiro.test(x = log(allI6S_qPCR$GenomeEquiv)) # W = 0.98876, p-value = 0.6853
+qqnorm(allI6S_qPCR$I6Scopies)
+qqline(allI6S_qPCR$I6Scopies)
+qqnorm(log(allI6S_qPCR$I6Scopies))
+qqline(log(allI6S_qPCR$I6Scopies))
+shapiro.test(x = log(allI6S_qPCR$I6Scopies)) # W = 0.98876, p-value = 0.6852
 # Given that these basically normal, prepare Welch's t-test on log-transformed values
-t.test(log(GenomeEquiv) ~ HabitatAir, data = allI6S_qPCR) #t = -0.29295, df = 81.886, p-value = 0.7703
+t.test(log(I6Scopies) ~ HabitatAir, data = allI6S_qPCR) #t = -0.29295, df = 81.886, p-value = 0.7703
 # But for good measure, non-parametric test (Wilcoxon rank sum test/Mann-Whitney test)
-qPCR_I6S_Wilcoxon <- wilcox.test(log(GenomeEquiv) ~ HabitatAir, data = allI6S_qPCR)
+qPCR_I6S_Wilcoxon <- wilcox.test(log(I6Scopies) ~ HabitatAir, data = allI6S_qPCR)
 qPCR_I6S_Wilcoxon # W = 840, p-value = 0.7646 Shows that there is no difference among groups
 
 ### 3. MODELS! ###
 # GENERALIZED LINEAR MODEL TO TEST FOR THE IMPORTANCE OF HABITAT WITH DAY AND EU AS RANDOM EFFECTS ###
 # using guide here: https://entnemdept.ufl.edu/Hahn/generalized-linear-mixed-models.html
-# First, round all Genome Equivalents to the nearest whole number, so I can use a Poisson distribution
-allI6S_qPCR$GenomeEquiv_rounded <- round(allI6S_qPCR$GenomeEquiv)
 # Get natural log-transformed data, since that was better in first models above
-allI6S_qPCR$NatLogGenomeEquivRound <- log(allI6S_qPCR$GenomeEquiv_rounded)
+allI6S_qPCR$NatLogI6Scopies <- log(allI6S_qPCR$I6Scopies)
 
 # CONSTRUCT SEVERAL POSSIBLE MODELS:
 colnames(allI6S_qPCR)
-#### 1. Use NON log-transformed data, just as a first pass. First pass is bad!
-I6SqPCRgaussianBasic_notLog <- glmmTMB(GenomeEquiv ~ HabitatAir, data=allI6S_qPCR, family="gaussian") 
+#### 1. Use NON log-transformed data, just as a first pass. First pass is bad! Very high dispersion yikes
+I6SqPCRgaussianBasic_notLog <- glmmTMB(I6Scopies ~ HabitatAir, data=allI6S_qPCR, family="gaussian") 
 I6SqPCRgaussianBasic_notLog
 summary(I6SqPCRgaussianBasic_notLog)
-# AIC      BIC   logLik deviance df.resid 
-# 1779.8   1787.0   -886.9   1773.8       81 
+#   AIC       BIC    logLik -2*log(L)  df.resid 
+# 2111.0    2118.3   -1052.5    2105.0        81 
 I6SqPCRgaussianBasic_notLog_resid <- resid(I6SqPCRgaussianBasic_notLog)
 qqnorm(I6SqPCRgaussianBasic_notLog_resid)
 qqline(I6SqPCRgaussianBasic_notLog_resid) #ooh this looks BAD
@@ -1942,11 +1917,14 @@ qqline(I6SqPCRgaussianBasic_notLog_resid) #ooh this looks BAD
 #### 2. Gaussian GLM w/o random effects just to check it out. But will let structure of the collected
 # data inform the model
 # Will use log-transformed data, since that made data closer to normal in simple linear models above
-I6SqPCRgaussianBasic <- glmmTMB(NatLogGenomeEquivRound ~ HabitatAir, data=allI6S_qPCR, family="gaussian") 
+I6SqPCRgaussianBasic <- glmmTMB(NatLogI6Scopies ~ HabitatAir, data=allI6S_qPCR, family="gaussian") 
 I6SqPCRgaussianBasic
 # Data: allI6S_qPCR
 # AIC       BIC    logLik -2*log(L)  df.resid 
-# 272.8113  280.1037 -133.4056  266.8113        81 
+# 272.8068  280.0992 -133.4034  266.8068        81 
+# 
+# Number of obs: 84
+# 
 # Dispersion estimate for gaussian family (sigma^2):  1.4 
 # CHECKS 
 # 1. Check for overdispersion
@@ -1965,18 +1943,18 @@ qqline(I6SqPCRgaussianBasic_Log_resid)
 shapiro.test(I6SqPCRgaussianBasic_Log_resid) #W = 0.98992, p-value = 0.7644
 
 #### 3. Gaussian GLM with random effects. Will also use log-transformed data
-I6SqPCRgaussianRandom_DayEU <- glmmTMB(NatLogGenomeEquivRound ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family = "gaussian")
+I6SqPCRgaussianRandom_DayEU <- glmmTMB(NatLogI6Scopies ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family = "gaussian")
 I6SqPCRgaussianRandom_DayEU
 summary(I6SqPCRgaussianRandom_DayEU)
-# AIC      BIC   logLik deviance df.resid 
-# 272.1    284.3   -131.1    262.1       79 
+# AIC       BIC    logLik -2*log(L)  df.resid 
+# 272.1     284.3    -131.1     262.1        79 
 # Conditional model:
 #   Estimate Std. Error z value            Pr(>|z|)    
-# (Intercept)        8.28276    0.20779   39.86 <0.0000000000000002 ***
-#   HabitatAirsavanna  0.03342    0.23762    0.14               0.888   
+# (Intercept)       10.22869    0.20779   49.23 <0.0000000000000002 ***
+#   HabitatAirsavanna  0.03341    0.23761    0.14               0.888  
 # Because original data are log-transformed,
-exp(8.28277) #3955.135 is the estimate for the intercept
-exp(0.03342) #1.033985 is the estimate for the HabitatAirSavanna
+exp(10.22869) #27686.22 is the estimate for the intercept
+exp(0.03341) #1.033974 is the estimate for the HabitatAirSavanna (i.e., habitat effects)
 # CHECKS 
 # 1. Check for overdispersion
 check_overdispersion(I6SqPCRgaussianRandom_DayEU)
@@ -1992,44 +1970,45 @@ shapiro.test(I6SqPCRgaussianRandom_DayEU_resid) #data:  I6SqPCRgaussianRandom_Da
 # W = 0.99408, p-value = 0.9707.. THEY ARE NORMAL!
 
 #### 4. # Basic Poisson GLM Used rounded genome equivalent data (Poisson requires integers)
-I6SqPCR_poissonBasic <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir, data=allI6S_qPCR, family="poisson") #poisson glm
+I6SqPCR_poissonBasic <- glmmTMB(I6Scopies ~ HabitatAir, data=allI6S_qPCR, family="poisson") #poisson glm
 I6SqPCR_poissonBasic
 summary(I6SqPCR_poissonBasic)
 
 # Data: allI6S_qPCR
-# AIC       BIC    logLik  df.resid 
-# 699273.0  699277.8 -349634.5        82 
+# 
+# AIC       BIC    logLik -2*log(L)  df.resid 
+# 4889876   4889881  -2444936   4889872        82 
 check_overdispersion(I6SqPCR_poissonBasic)
 # # Overdispersion test -- OVERDISPERSED!!!
 
-# dispersion ratio =  11039.211
-# Pearson's Chi-Squared = 905215.296
-#                 p-value =    < 0.001
+# dispersion ratio =   77273.979
+# Pearson's Chi-Squared = 6336466.239
+#                 p-value =     < 0.001
 
-#### 5. Poisson GLM with both possible random effects. Used rounded genome equivalent data (Poisson requires integers)
-I6SqPCR_poissonRandom_DayEU <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family="poisson") #poisson glm
+#### 5. Poisson GLM with both possible random effects. 
+I6SqPCR_poissonRandom_DayEU <- glmmTMB(I6Scopies ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family="poisson") #poisson glm
 I6SqPCR_poissonRandom_DayEU
 summary(I6SqPCR_poissonRandom_DayEU)
 # Conditional model:
-#   Estimate Std. Error z value            Pr(>|z|)    
-# (Intercept)        8.802988   0.192724   45.68 <0.0000000000000002 ***
-#   HabitatAirsavanna -0.306270   0.002601 -117.73 <0.0000000000000002 ***
+# Estimate Std. Error z value            Pr(>|z|)    
+# (Intercept)       10.7488505  0.1928290   55.74 <0.0000000000000002 ***
+# HabitatAirsavanna -0.3062667  0.0009833 -311.48 <0.0000000000000002 ***
 
 check_overdispersion(I6SqPCR_poissonRandom_DayEU)
 # # Overdispersion test -- oh no, OVERDISPERSED!
 # 
-# dispersion ratio =   5675.455
-# Pearson's Chi-Squared = 454036.372
-#                 p-value =    < 0.001
+# dispersion ratio =   39728.106
+# Pearson's Chi-Squared = 3178248.460
+#                 p-value =     < 0.001
 
 # 6. Negative binomial model with all predictors
-I6SqPCR_NB_Random_DayEU <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family="nbinom2")
-Anova(I6SqPCR_NB_Random_DayEU)
+I6SqPCR_NB_Random_DayEU <- glmmTMB(I6Scopies ~ HabitatAir + (1|EU/samplingDay), data=allI6S_qPCR, family="nbinom2")
+Anova(I6SqPCR_NB_Random_DayEU) #note that stats, rounded, have the same values as results with gen. equiv.s
 # Analysis of Deviance Table (Type II Wald chisquare tests)
 # 
-# Response: GenomeEquiv_rounded
+# Response: I6Scopies
 # Chisq Df Pr(>Chisq)
-# HabitatAir 1.3937  1     0.2378
+# HabitatAir 1.3933  1      0.2379
 dim(allI6S_qPCR)
 
 # Set seed since these are simulations!-- ALL LOOK GOOD!
@@ -2041,45 +2020,43 @@ hist(simulateResiduals(I6SqPCR_NB_Random_DayEU, n=1000))
 ######### ITS #########
 head(allITS_qPCR)
 dim(allITS_qPCR)
-unique(is.na(allITS_qPCR$GenomeEquiv)) #no NAs
+unique(is.na(allITS_qPCR$ITScopies)) #no NAs
 unique(is.na(allITS_qPCR$HabitatAir)) #no NAs
 # Make everything that needs to be a factor into a factor (especially important for the GLMMs below)
 colnames(allITS_qPCR)
 allITS_qPCR$HabitatAir <- as.factor(allITS_qPCR$HabitatAir)
 allITS_qPCR$samplingDay <- as.factor(allITS_qPCR$samplingDay)
 allITS_qPCR$EU <- as.factor(allITS_qPCR$EU)
-allITS_qPCR$GenomeEquiv <- as.numeric(allITS_qPCR$GenomeEquiv)
+allITS_qPCR$ITScopies <- as.numeric(allITS_qPCR$ITScopies)
 
 ### SIMPLE T-TEST/WILCOXON ###
 # Check to see if volume is normally distributed with Shapiro-Wilk test
-shapiro.test(x = allITS_qPCR$GenomeEquiv) #W = 0.60261, p-value = 0.0000000000000008461 these data are NOT normal (reject null that is normal)
+shapiro.test(x = allITS_qPCR$ITScopies) #W = 0.60261, p-value = 0.0000000000000008461 these data are NOT normal (reject null that is normal)
 # Does log transforming these make them normal (this also matches the likely plots...). 
 # Q-Q plot - looking much better and shapiro tests confirms that normal once log-transformed!
-qqnorm(log(allITS_qPCR$GenomeEquiv))
-qqline(log(allITS_qPCR$GenomeEquiv))
-shapiro.test(x = log(allITS_qPCR$GenomeEquiv)) #W = 0.98351, p-value = 0.1934
+qqnorm(log(allITS_qPCR$ITScopies))
+qqline(log(allITS_qPCR$ITScopies))
+shapiro.test(x = log(allITS_qPCR$ITScopies)) #W = 0.98351, p-value = 0.1934
 # Given that these basically normal, prepare Welch's t-test on log-transformed values
-t.test(log(GenomeEquiv) ~ HabitatAir, data = allITS_qPCR) #t = -0.88981, df = 103.13, p-value = 0.3756
+t.test(log(ITScopies) ~ HabitatAir, data = allITS_qPCR) #t = -0.88981, df = 103.13, p-value = 0.3756
 # But for good measure, non-parametric test (Wilcoxon rank sum test/Mann-Whitney test)
-allITS_qPCR_Wilcoxon <- wilcox.test(log(GenomeEquiv) ~ HabitatAir, data = allITS_qPCR)
+allITS_qPCR_Wilcoxon <- wilcox.test(log(ITScopies) ~ HabitatAir, data = allITS_qPCR)
 allITS_qPCR_Wilcoxon #W = 1340, p-value = 0.3256 Shows that there is no difference among groups
 
 ### MODELS! ###
 # GENERALIZED LINEAR MODEL TO TEST FOR THE IMPORTANCE OF HABITAT WITH DAY AND EU AS RANDOM EFFECTS ###
 # using guide here: https://entnemdept.ufl.edu/Hahn/generalized-linear-mixed-models.html
-# First, round all Genome Equivalents to the nearest whole number, so I can use a Poisson distribution
-allITS_qPCR$GenomeEquiv_rounded <- round(allITS_qPCR$GenomeEquiv)
 # Get natural log-transformed data, since that was better in first models above
-allITS_qPCR$NatLogGenomeEquivRound <- log(allITS_qPCR$GenomeEquiv_rounded)
+allITS_qPCR$NatLogITScopies <- log(allITS_qPCR$ITScopies)
 
 # CONSTRUCT SEVERAL POSSIBLE MODELS:
 colnames(allITS_qPCR)
 #### 1. Use NON log-transformed data, just as a first pass
-ITSqPCRgaussianBasic_notLog <- glmmTMB(GenomeEquiv ~ HabitatAir, data=allITS_qPCR, family="gaussian") 
+ITSqPCRgaussianBasic_notLog <- glmmTMB(ITScopies ~ HabitatAir, data=allITS_qPCR, family="gaussian") 
 ITSqPCRgaussianBasic_notLog
 summary(ITSqPCRgaussianBasic_notLog)
-# AIC      BIC   logLik deviance df.resid 
-# 3052.6   3060.7  -1523.3   3046.6      107 
+# AIC       BIC    logLik -2*log(L)  df.resid 
+# 3852.8    3860.9   -1923.4    3846.8       107 
 # Check out residuals
 ITSqPCRgaussianBasic_notLog_resid <- resid(ITSqPCRgaussianBasic_notLog)
 qqnorm(ITSqPCRgaussianBasic_notLog_resid)
@@ -2088,11 +2065,11 @@ qqline(ITSqPCRgaussianBasic_notLog_resid) #ooh this looks not great, as expected
 #### 2. Gaussian GLM w/o random effects just to check it out. But will let structure of the collected
 # data inform the model
 # Will use log-transformed data, since that made data closer to normal in simple linear models above
-ITSqPCRgaussianBasic <- glmmTMB(NatLogGenomeEquivRound ~ HabitatAir, data=allITS_qPCR, family="gaussian") 
+ITSqPCRgaussianBasic <- glmmTMB(NatLogITScopies ~ HabitatAir, data=allITS_qPCR, family="gaussian") 
 ITSqPCRgaussianBasic
 # Data: allITS_qPCR
 # AIC       BIC    logLik -2*log(L)  df.resid 
-# 356.9538  365.0553 -175.4769  350.9538       107 
+# 356.9554  365.0568 -175.4777  350.9554       107 
 # CHECKS 
 # 1. Check for overdispersion
 check_overdispersion(ITSqPCRgaussianBasic)
@@ -2110,7 +2087,7 @@ qqline(ITSqPCRgaussianBasic_Log_resid)
 shapiro.test(ITSqPCRgaussianBasic_Log_resid) #W = 0.98198, p-value = 0.1437
 
 #### 3. Gaussian GLM with random effects. Will also use log-transformed data
-ITSqPCRgaussianRandom_DayEU <- glmmTMB(NatLogGenomeEquivRound ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family = "gaussian")
+ITSqPCRgaussianRandom_DayEU <- glmmTMB(NatLogITScopies ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family = "gaussian")
 ITSqPCRgaussianRandom_DayEU
 summary(ITSqPCRgaussianRandom_DayEU)
 
@@ -2120,22 +2097,21 @@ summary(ITSqPCRgaussianRandom_DayEU)
 # Random effects:
 #   
 # Conditional model:
-#   Groups         Name        Variance      Std.Dev.  
-# samplingDay:EU (Intercept) 0.61891575681 0.78671199
-# EU             (Intercept) 0.00000000177 0.00004207
-# Residual                   0.79910723376 0.89392798
+#   Groups         Name        Variance       Std.Dev.  
+# samplingDay:EU (Intercept) 0.618923710473 0.78671705
+# EU             (Intercept) 0.000000001594 0.00003992
+# Residual                   0.799119395109 0.89393478
 # Number of obs: 110, groups:  samplingDay:EU, 16; EU, 4
 # 
 # Dispersion estimate for gaussian family (sigma^2): 0.799 
 # 
 # Conditional model:
 #   Estimate Std. Error z value            Pr(>|z|)    
-# (Intercept)        11.1248     0.2290   48.59 <0.0000000000000002 ***
-#   HabitatAirsavanna   0.2226     0.1722    1.29               0.196    
-# ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# (Intercept)        14.7624     0.2290   64.47 <0.0000000000000002 ***
+# HabitatAirsavanna   0.2226     0.1722    1.29               0.196    
+
 # Because original data are log-transformed,
-exp(11.1248) #67832.72 is the estimate for the intercept
+exp(14.7624) #2577679 is the estimate for the intercept
 exp(0.2226) #1.249321 is the estimate for the HabitatAirSavanna
 # CHECKS 
 # 1. Check for overdispersion
@@ -2155,58 +2131,57 @@ shapiro.test(ITSqPCRgaussianRandom_DayEU_resid) #data:  ITSqPCRgaussianRandom_Da
 # Shapiro-Wilk normality test
 # 
 # data:  ITSqPCRgaussianRandom_DayEU_resid
-# W = 0.96991, p-value = 0.01366
-
+# W = 0.96991, p-value = 0.01365
 
 #### 4. # Basic Poisson GLM Used rounded genome equivalent data (Poisson requires integers)
-ITSqPCR_poissonBasic <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir, data=allITS_qPCR, family="poisson") #poisson glm
+ITSqPCR_poissonBasic <- glmmTMB(ITScopies ~ HabitatAir, data=allITS_qPCR, family="poisson") #poisson glm
 ITSqPCR_poissonBasic
 summary(ITSqPCR_poissonBasic)
 
 # Data: allI6S_qPCR
-# AIC      BIC   logLik deviance df.resid 
-# 18186890 18186896 -9093443 18186886      108 
+#       AIC        BIC     logLik  -2*log(L)   df.resid 
+# 691048988  691048994 -345524492  691048984        108 
 
 # Conditional model:
-#   Estimate Std. Error z value            Pr(>|z|)    
-# (Intercept)       11.7597956  0.0003639   32317 <0.0000000000000002 ***
-#   HabitatAirsavanna  0.2843356  0.0004977     571 <0.0000000000000002 ***
+# Estimate  Std. Error z value            Pr(>|z|)    
+# (Intercept)       15.39738126  0.00005903  260839 <0.0000000000000002 ***
+# HabitatAirsavanna  0.28433616  0.00008073    3522 <0.0000000000000002 ***
 
 #### 5. Poisson GLM with both possible random effects. Used rounded genome equivalent data (Poisson requires integers)
-ITSqPCR_poissonRandom_DayEU <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family="poisson") #poisson glm
+ITSqPCR_poissonRandom_DayEU <- glmmTMB(ITScopies ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family="poisson") #poisson glm
 ITSqPCR_poissonRandom_DayEU
 summary(ITSqPCR_poissonRandom_DayEU)
 check_overdispersion(ITSqPCR_poissonRandom_DayEU) #OVERDISPERSED!!!!
 # # Overdispersion test
 # 
-# dispersion ratio =   65057.393
-# Pearson's Chi-Squared = 6896083.646
-#                 p-value =     < 0.001
+# dispersion ratio =   2472182.640
+# Pearson's Chi-Squared = 262051359.811
+#                 p-value =       < 0.001
 
+# Formula:          ITScopies ~ HabitatAir + (1 | EU/samplingDay)
+# Data: allITS_qPCR
+# 
+# AIC        BIC     logLik  -2*log(L)   df.resid 
+# 263877067  263877078 -131938529  263877059        106 
 
-# Formula:          GenomeEquiv_rounded ~ HabitatAir + (1 | samplingDay) + (1 | EU)
-# Data: allI6S_qPCR
-# AIC       BIC    logLik  df.resid 
-# 437684.4  437694.1 -218838.2        80 
-
-# 6. Poisson GLM with only EU random effects. Used rounded genome equivalent data (Poisson requires integers)
-ITSqPCR_poissonRandom_EU <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir + (1|EU), data=allITS_qPCR, family="poisson") #poisson glm
+# 6. Poisson GLM with only EU random effects.
+ITSqPCR_poissonRandom_EU <- glmmTMB(ITScopies ~ HabitatAir + (1|EU), data=allITS_qPCR, family="poisson") #poisson glm
 ITSqPCR_poissonRandom_EU
 check_overdispersion(ITSqPCR_poissonRandom_EU) #OVERDISPERSED!!!!
 # Overdispersion test
 # 
-# dispersion ratio =   203586.550
-# Pearson's Chi-Squared = 21783760.872
-#                 p-value =      < 0.001
+# dispersion ratio =   7736284.518
+# Pearson's Chi-Squared = 827782443.424
+#                 p-value =       < 0.001
 
 # 7. Negative binomial model with all predictors
-ITSqPCR_NB_Random_DayEU <- glmmTMB(GenomeEquiv_rounded ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family="nbinom2")
-Anova(ITSqPCR_NB_Random_DayEU)
+ITSqPCR_NB_Random_DayEU <- glmmTMB(ITScopies ~ HabitatAir + (1|EU/samplingDay), data=allITS_qPCR, family="nbinom2")
+Anova(ITSqPCR_NB_Random_DayEU) #also the same as above
 # Analysis of Deviance Table (Type II Wald chisquare tests)
 # 
-# Response: GenomeEquiv_rounded
+# Response: ITScopies
 # Chisq Df Pr(>Chisq)
-# HabitatAir 1.484  1     0.2232
+# HabitatAir 1.4839  1     0.2232
 dim(allITS_qPCR) #110 samples
 
 # Set seed since these are simulations! And all model assumptions look good!
@@ -2217,6 +2192,6 @@ hist(simulateResiduals(ITSqPCR_NB_Random_DayEU, n=1000))
 
 # Compare AICs -- as expected, NB sooooo much lower
 AIC(ITSqPCR_poissonRandom_EU,ITSqPCR_NB_Random_DayEU)
-# df          AIC
-# ITSqPCR_poissonRandom_EU  3 16793158.172
-# ITSqPCR_NB_Random_DayEU   5     2796.129
+# df           AIC
+# ITSqPCR_poissonRandom_EU  3 638085058.063
+# ITSqPCR_NB_Random_DayEU   5      3596.398
