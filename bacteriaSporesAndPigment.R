@@ -18,6 +18,27 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 
+# Note that the commented out section below needs to be run from the command line before additional processing in R.
+###### MATCH MY 16S SEQUENCES TO THOSE IN THE GTDB DATABASE, USING THE CODE BELOW ###### 
+# (Based on instructions and code in vsearch_align_16S_genomes.txt from Josep. I originally did steps 
+# i and ii below for my soil edge effects paper (so code for that repeated in madinMatchingCode_Dec18_2023 
+# script)
+# 
+# i. INSTALL VSEARCH (location is /data/winfreyc/miniconda3/bin/vsearch)
+# # Version is v2.15.2_linux_x86_64, 251.8GB RAM, 32 cores
+# conda install -c bioconda vsearch
+# 
+# ii. USE THE "MAKEUDB_USEARCH" COMMAND TO CREATE A UDB DATABASE FILE FROM SEQUENCES IN THE GTDB METADATA FILE
+# # (can grab it from file on microbe, as is done here). NOTE: since this code was run, "bac120_ssu_reps_r207.fna"
+# is now ALSO in the folder winfreyc/GTDB_databases on microbe!
+# vsearch --makeudb_usearch /data/ramonedaj/bac120_ssu_reps_r207.fna -output /data/winfreyc/madinDataset/bac120_ssu_reps_r207.udb
+# 
+# iii. ALIGN THE READS FROM MY DATASET TO THE DATABASE OF SSUS (AND PUT THIS INTO THE FOLDER CALLED MADINMATCHINGDEC2023 IN /DATA/WINFREYC/SRS_MAY_2021/ FOLDER):
+# # FIRST THROW ON A SCREEN!!
+# # Note: the --id 0.97 flag set the identity threshold at 97%, meaning only sequences that are at least 97% identical over the aligned region will be considered as matches.
+# vsearch --usearch_global /data/winfreyc/SRS_aeromicrobiome_2022/all16S_repset.fasta --db /data/winfreyc/madinDataset/bac120_ssu_reps_r207.udb --strand both --notrunclabels --iddef 0 --id 0.97 --maxrejects 100 --maxaccepts 100 --blast6out /data/winfreyc/SRS_aeromicrobiome_2022/madinMatching/16S_GTDB_aligned_ssu_97.tsv --threads 16
+#####################
+
 # i. SET WORKING DIRECTORY:
 setwd("/data/winfreyc/SRS_aeromicrobiome_2022")
 list.files() #list all of the files in this working directory
@@ -40,27 +61,6 @@ unique(madinDat$sporulation[which(madinDat$order== "Pseudomonadales")]) #there a
 sporePseudoIndex <- intersect(which(madinDat$order== "Pseudomonadales"), which(madinDat$sporulation== "yes")) #there are some with yes!
 # View(madinDat[sporePseudoIndex, ])
 unique(madinDat$sporulation[which(madinDat$family== "Sphingomonadaceae")]) #there are some with yes!, so that is why a Sphingomonas is appearing as a possible spore-former
-
-
-###### II. MATCH MY 16S SEQUENCES TO THOSE IN THE GTDB DATABASE, USING THE CODE BELOW ###### 
-# (Based on instructions and code in vsearch_align_16S_genomes.txt from Josep. I originally did steps 
-# i and ii below for my soil edge effects paper (so code for that repeated in madinMatchingCode_Dec18_2023 
-# script)
-# 
-# i. INSTALL VSEARCH (location is /data/winfreyc/miniconda3/bin/vsearch)
-# # Version is v2.15.2_linux_x86_64, 251.8GB RAM, 32 cores
-# conda install -c bioconda vsearch
-# 
-# ii. USE THE "MAKEUDB_USEARCH" COMMAND TO CREATE A UDB DATABASE FILE FROM SEQUENCES IN THE GTDB METADATA FILE
-# # (can grab it from file on microbe, as is done here). NOTE: since this code was run, "bac120_ssu_reps_r207.fna"
-# is now ALSO in the folder winfreyc/GTDB_databases on microbe!
-# vsearch --makeudb_usearch /data/ramonedaj/bac120_ssu_reps_r207.fna -output /data/winfreyc/madinDataset/bac120_ssu_reps_r207.udb
-# 
-# iii. ALIGN THE READS FROM MY DATASET TO THE DATABASE OF SSUS (AND PUT THIS INTO THE FOLDER CALLED MADINMATCHINGDEC2023 IN /DATA/WINFREYC/SRS_MAY_2021/ FOLDER):
-# # FIRST THROW ON A SCREEN!!
-# # Note: the --id 0.97 flag set the identity threshold at 97%, meaning only sequences that are at least 97% identical over the aligned region will be considered as matches.
-# vsearch --usearch_global /data/winfreyc/SRS_aeromicrobiome_2022/all16S_repset.fasta --db /data/winfreyc/madinDataset/bac120_ssu_reps_r207.udb --strand both --notrunclabels --iddef 0 --id 0.97 --maxrejects 100 --maxaccepts 100 --blast6out /data/winfreyc/SRS_aeromicrobiome_2022/madinMatching/16S_GTDB_aligned_ssu_97.tsv --threads 16
-#####################
 
 ###### III. BRING IN THE MATCHED ASVs MADE ABOVE AND RE-FORMAT FOR LATER MATCHING ###### 
 # i. EXPLORE DATAFRAME MADE ABOVE
