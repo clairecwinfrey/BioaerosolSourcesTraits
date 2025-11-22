@@ -1794,26 +1794,8 @@ allI6S_qPCR <- allI6S_qPCR %>%
     )
   )
 # View(allI6S_qPCR)
+#saveRDS(allI6S_qPCR, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allI6S_qPCR.rds")
 
-# PLOT IT:
-# Make plot:
-allI6S_qPCR_byHabitat <- ggplot(data=allI6S_qPCR, aes(x=HabitatAir, y=I6Scopies, fill=HabitatAir)) + 
-  geom_boxplot() +
-  scale_y_log10(name = "16S copies (bacteria)", breaks = c(1e+03, 1e+04),  labels = c("1e+03", "1e+04")) +  # Apply logarithmic scale
-  labs(x= NULL) +
-  scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) + 
-  geom_jitter(color="black", size=2, alpha=0.9, height = 0, width = 0.35) + 
-  theme_bw() +
-  theme(
-    legend.position="none",
-    panel.grid = element_blank(),
-    axis.title.x = element_blank(),  # Remove x-axis title
-    axis.title.y = element_text(size = 16),  
-    axis.text.x = element_text(colour = "black", size = 14)  #x-axis tick labels
-  )
-
-# quartz()
-allI6S_qPCR_byHabitat
 
 ###### ITS ######
 # MAKE OBJECT THAT HAS ALL DATA IN ONE, WITH Y-AXIS ON LOG SCALE:
@@ -1840,32 +1822,12 @@ allITS_qPCR <- allITS_qPCR %>%
     )
   )
 # View(allITS_qPCR)
+class(allITS_qPCR$ITScopies)
+allITS_qPCR 
 
-# PLOT IT:
-allITS_qPCR_byHabitat <- ggplot(data=allITS_qPCR, aes(x=HabitatAir, y=ITScopies, fill=HabitatAir)) + 
-  geom_boxplot() +
-  scale_y_log10(name = "ITS copies (fungi)", labels = scales::scientific) +  # Apply logarithmic scale
-  labs(x= NULL) +
-  scale_fill_manual(values = c("forest" = "forestgreen", "savanna" = "goldenrod")) + 
-  geom_jitter(color="black", size=2, alpha=0.9, height = 0, width = 0.35) + 
-  theme_bw() +
-  theme(
-    legend.position="none",
-    axis.title.x = element_blank(),  # Remove x-axis title
-    axis.title.y = element_text(size = 16),  
-    axis.text.x = element_text(colour = "black", size = 14)  #x-axis tick labels
-  )
+# saveRDS(allITS_qPCR, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allITS_qPCR.rds")
 
-# quartz()
-allITS_qPCR_byHabitat
-
-# PLOT BACTERIAL AND FUNGAL PLOTS TOGETHER
-# quartz()
-grid.arrange(allITS_qPCR_byHabitat, allI6S_qPCR_byHabitat) #saved these plots (from Quartz window) as "qPCR_allDaysBoxplots"
-
-# Save and export 
-# saveRDS(allITS_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allITS_qPCR_byHabitat_11-17-2025.rds")
-# saveRDS(allI6S_qPCR_byHabitat, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allI6S_qPCR_byHabitat_11-17-2025.rds")
+# PLOT MADE IN figureBeautifying.R
 
 ################# QPCR STATISTICS #################
 ######### 16S #########

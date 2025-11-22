@@ -3,9 +3,6 @@
 
 
 # This script takes all main figures for the manuscript and re-formats them together
-# THINGS TO DO:
-# 1. REMOVE ALLL GRIDLINES ON THESE PLOTS!!!!!!!!!!!!!!
-# 2. Genome equivalents should be 16S COPY NUMBER?
 
 library(gridExtra)
 library(ggplot2); packageVersion("ggplot2") #‘4.0.0’
@@ -13,10 +10,12 @@ library(dplyr)
 library(scales)
 library(patchwork)
 library(grid)
+library(cowplot)
 
 ###############################
 # SCRIPT SET UP 
 ###############################
+options(scipen = 999) #turn off awful scientific notation
 ##### Objects used throughout:
 spacer_h <- unit(0.4, "in")  #gap for grid arrange
 
@@ -24,6 +23,20 @@ spacer_h <- unit(0.4, "in")  #gap for grid arrange
 #### MAIN FIGURES ####
 # FIGURE 2: "Figure 2.  Heat maps showing the relative abundance of the top 35 fungal orders (a)
 # and bacterial phyla (b) in air samples."
+# Made in habitatAnalyses_Sept.R
+ITSOrder_heatmap_faceted_sqrt <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITSOrder_heatmap_faceted_sqrt-10-26-2025.rds")
+I6SClass_heatmap_faceted_sqrt <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6SClass_heatmap_faceted_sqrt_10-26-2025.rds")
+ITSOrder_heatmap_faceted_sqrt <- ITSOrder_heatmap_faceted_sqrt +
+  theme(
+    axis.text.y = element_text(size= 7, color="black"))
+
+I6SClass_heatmap_faceted_sqrt <- I6SClass_heatmap_faceted_sqrt  +
+  theme(
+    axis.text.y = element_text(size= 7, color="black"))
+
+# Have to re-arrange manually in the quartz window
+quartz(width = 5.5, height = 8.6, family = "Helvetica")
+(ITSOrder_heatmap_faceted_sqrt  / I6SClass_heatmap_faceted_sqrt) + plot_layout(heights = c(1, 1))
 
 
 # FIGURE 4: "Figure 3.  Associations among taxa in the air and the potential source environments
@@ -80,7 +93,7 @@ grid.arrange(
   ncol = 1,
   heights = unit.c(unit(1, "null"), spacer_h, unit(1, "null"))
 )
-
+##############################
 # FIGURE 4: "Figure 5. Comparison of traits of fungi between the foliar surface
 # source environment and the air."
 # a. 
@@ -97,6 +110,7 @@ ITS_2ordANCOM_bubPlot + theme(
   scale_x_discrete(labels=c(
   "bioaerosol", "foliar surfaces")
 )
+##############################
 
 # b. Description: "volume distributions of fungal uninucleate sexual spores by ASV in the air and foliar surface samples"
 # From sporeSizeAug26_2025.R
@@ -107,6 +121,7 @@ sexSpore_ViolinPlot +
     "bioaerosol", "foliar surfaces")
   )
 
+##############################
 # c. # Morphology, made in ANCOM_traits_I6SandITS_.05pct.R
 colsForANCOMmorphs <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/colsForANCOMmorphs.rds")
 airLeafANCOM_FUNGUILD_5_barPlot <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/airLeafANCOM_FUNGUILD_2_barPlot_Oct16_2025.rds")
@@ -142,8 +157,8 @@ airLeafANCOM_FUNGUILD_5_barPlot +
       "Yeast" = "Yeast"
     )
   )
+##############################
 # FIGURE 5: Comparison of traits of bacteria between the foliar surface
-
 I6S_allClassANCOM_bubPlot <- readRDS(file ="~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allClassANCOM_bubPlot_10-16-2025.rds")
 #quartz()
 I6S_allClassANCOM_bubPlot +
@@ -158,7 +173,7 @@ I6S_allClassANCOM_bubPlot +
   scale_x_discrete(labels=c(
     "bioaerosol", "foliar surfaces")
   )
-
+##############################
 # d. Sporulation, made in ANCOM_traits_I6SandITS_.05pct.R
 spore_barPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sporeAirFoliar_barPlot_10-15-2025.rds")
 # quartz()
@@ -175,7 +190,7 @@ spore_barPlot +
   guides(fill = guide_legend(nrow = 1)) +
   scale_x_discrete(labels=c(
     "bioaerosol", "foliar surfaces")) 
-
+##############################
 # e. Pigmentation, made in ANCOM_traits_I6SandITS_.05pct.R
 ANCOMgenPigPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ANCOMgenPigPlot_10-15-2025.rds")
 quartz()
@@ -198,115 +213,6 @@ ANCOMgenPigPlot +
 
 #### SUPPLEMENTARY FIGURES ####
 # Fig S2. Non-metric multidimensional scaling (NMDS) ordinations based on Bray-Curtis dissimilarities among air, foliar surface, and soil samples for fungal (a) and bacterial (b) datasets
-# I6S (from full16S_EDArarefied_Part2_Sept.R) Stress is still 0.1148366 , so 0.11 as currently on figure
-I6S_bySampTypeOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_bySampTypeOrd_09-17-2025.rds")
-I6S_bySampTypeOrd +
-  theme(panel.grid = element_blank()) # remove ALL gridlines
-
-# ITS (from fullITS_EDArarefied_Part2_Sept.R). Stress is  0.09624302, so matches current figure
-ITS_bySampTypeOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_bySampTypeOrd_09-17-2025.rds")
-ITS_bySampTypeOrd +
-  theme(panel.grid = element_blank()) # remove ALL gridlines
-
-# Presence/absence figure ????
-# From I6S_sourceTracking_Sept.R
-I6S_allTypesPresAbs_2panels <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allTypesPresAbs_2panels_09-25-25.rds")
-# Median number of ASVs for each group
-# sampleType   medianNumASVs
-
-#   1 air                   106.
-# 2 phyllosphere          592.
-# 3 soil                 1974 
-
-# SD of number of ASVs for each group
-# sampleType   sdNumASVs
-#   1 air               82.8
-# 2 phyllosphere     385. 
-# 3 soil             353. 
-
-# From I6S_sourceTracking_Sept.R
-ITS_allTypesPresAbs_2panels <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesPresAbs_2panels_09-29-25")
-# Median number of ASVs per group
-# sampleType   medianNumASVs
-# <chr>                <dbl>
-# 1 air                    724
-# 2 phyllosphere           836
-# 3 soil                   287
-
-# SD of number of ASVs per group
-# sampleType   sdNumASVs
-# <chr>            <dbl>
-# 1 air             273. 
-# 2 phyllosphere    185. 
-# 3 soil            72.5
-
-# Fig S4. Genome equivalents and NMDS
-# From: habitatAnalyses_Sept.R 
-allITS_qPCR_byHabitatPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allITS_qPCR_byHabitat_09-21-2025.rds")
-allITS_qPCR_byHabitatPlot2 <- allITS_qPCR_byHabitatPlot +
-  theme(panel.grid = element_blank()) + # remove ALL gridlines
-  scale_y_log10(
-    name = expression(atop("Fungal genome", "equivalents" ~ symbol("\xb7") ~ m^{-3})),
-    breaks = c(1e3, 1e4, 1e5, 1e6),
-    labels = parse(text = c("10^3", "10^4", "10^5", "10^6")),
-    minor_breaks = NULL,
-    limits = c(1e3, 1e6) 
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10)
-  ) +
-  scale_x_discrete(labels = c( #change x-axis labels
-    forest = "forested matrix",
-    savanna = "open patch"
-  ))
-allITS_qPCR_byHabitatPlot2
-
-allI6S_qPCR_byHabitatPlot <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/allI6S_qPCR_byHabitat_09-21-2025.rds")
-allI6S_qPCR_byHabitatPlot2 <- allI6S_qPCR_byHabitatPlot  +
-  theme(panel.grid = element_blank()) + # remove ALL gridlines
-  scale_y_log10(
-    name = expression(atop("Bacterial genome", "equivalents" ~ symbol("\xb7") ~ m^{-3})),
-    breaks = c(1e3, 1e4, 1e5, 1e6),
-    labels = parse(text = c("10^3", "10^4", "10^5", "10^6")),
-    minor_breaks = NULL,
-    limits = c(1e3, 1e6) 
-  ) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10)
-  ) +
-  scale_x_discrete(labels = c( #change x-axis labels
-    forest = "forested matrix",
-    savanna = "open patch"
-  ))
-allI6S_qPCR_byHabitatPlot2
-
-# Ordinations
-I6S_habitatAirOrd <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_habitatAirOrd_10-17-25.rds")
-I6S_habitatAirOrd2 <- I6S_habitatAirOrd +
-  theme(
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10),
-    legend.position = "none"
-  )
-I6S_habitatAirOrd2
-  
-ITS_habitatAirOrd <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_habitatAirOrd_10-17-25.rds")
-ITS_habitatAirOrd2 <- ITS_habitatAirOrd +
-  theme(
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10),
-    legend.position = "none"
-  )
-ITS_habitatAirOrd2
-
-grid.arrange(allITS_qPCR_byHabitatPlot2, allI6S_qPCR_byHabitatPlot2, ITS_habitatAirOrd2, I6S_habitatAirOrd2, nrow=2)
-
 # Figure S2. Non-metric multidimensional scaling (NMDS) ordinations based on Bray-Curtis dissimilarities among bioaerosol, foliar surface, and soil
 # Made in fullITS_EDArarefied_Part2_Sept.R
 ITS_bySampTypeOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_bySampTypeOrd_10-25-2025.rds")
@@ -326,7 +232,6 @@ I6S_bySampTypeOrd <- I6S_bySampTypeOrd +
     axis.text.x = element_text(size = 10),
     legend.position = "none"
   )
-  
 
 # Convert plots to grobs
 grobITS_bySampTypeOrd <- ggplotGrob(ITS_bySampTypeOrd)
@@ -337,4 +242,174 @@ grobI6S_bySampTypeOrd$widths <- grobITS_bySampTypeOrd$widths
 
 # quartz() #exported as S2_sampleTypeOrdinations.pdf 
 grid.arrange(grobITS_bySampTypeOrd, grobI6S_bySampTypeOrd, ncol=2)
+
+##############################
+# Figure S3. Proportions of taxa in bioaerosols and the potential source environments of foliar surfaces and soil
+# From I6S_sourceTracking_Sept.R
+I6S_allTypesPresAbs_2panels <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_allTypesPresAbs_2panels_10-25-25.rds")
+I6S_allTypesPresAbs_2panels <- 
+  I6S_allTypesPresAbs_2panels + theme(panel.grid = element_blank()) + # remove ALL gridlines
+  theme(
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    strip.text = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10, angle = 0, hjust = 0.5, vjust = 0.5),
+    legend.position = "none" #remove legend
+  ) +
+  scale_x_discrete(labels=c(
+    "bioaerosol\nmatrix", "bioaerosol\npatch",
+    "foliar\nsurfaces", "soil")
+  ) +
+  ylab("Proportion of foliar surface\nor soil indicator taxa")
+I6S_allTypesPresAbs_2panels
+# From ITS_sourceTracking_Sept.R
+ITS_allTypesPresAbs_2panels <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_allTypesPresAbs_2panels_10-25-25.rds")
+ITS_allTypesPresAbs_2panels <- ITS_allTypesPresAbs_2panels + theme(panel.grid = element_blank()) + # remove ALL gridlines
+  theme(
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    strip.text = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10, angle = 0, hjust = 0.5, vjust = 0.5),
+    legend.position = "none" #remove legend
+  ) +
+  scale_x_discrete(labels=c(
+    "bioaerosol\nmatrix", "bioaerosol\npatch",
+    "foliar\nsurfaces", "soil")
+  ) +
+  ylab("Proportion of foliar surface\nor soil indicator taxa")
+ITS_allTypesPresAbs_2panels
+quartz()
+grid.arrange(
+  ITS_allTypesPresAbs_2panels, 
+  rectGrob(gp = gpar(col = NA, fill = NA), height = spacer_h),
+  I6S_allTypesPresAbs_2panels,
+  ncol = 1,
+  heights = unit.c(unit(1, "null"), spacer_h, unit(1, "null"))
+)
+
+##############################
+# Fig S4. Gene copies and NMDS
+# From: (dataframe) habitatAnalyses_Sept.R 
+allI6S_qPCR <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allI6S_qPCR.rds")
+max(allI6S_qPCR$I6Scopies)
+min(allI6S_qPCR$I6Scopies)
+
+allI6S_qPCR_byHabitat <- ggplot(
+  data = allI6S_qPCR,
+  aes(x = HabitatAir, y = I6Scopies, fill = HabitatAir)
+) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) + 
+  geom_boxplot(outlier.shape = NA) +
+  # jittered points in black
+  geom_jitter(
+    color  = "black",
+    size   = 2,
+    alpha  = 0.9,
+    width  = 0.25,
+    height = 0
+  ) +
+  # log10 y axis 
+  scale_y_continuous(
+    trans  = "log10",
+    name   = "16S copies (bacteria)",
+    breaks = c(1e3, 1e4, 1e5, 1e6),
+    limits = c(1e3, 1e6)
+  ) +
+  scale_fill_manual(
+    values = c(
+      forest  = "forestgreen",
+      savanna = "goldenrod"
+    )
+  ) +
+  scale_x_discrete(name = NULL,
+                   labels = c( #change x-axis labels
+                     forest = "forested matrix",
+                     savanna = "open patch"
+                   )) +
+ theme(
+      axis.text.y = element_text(size = 10),
+      axis.title.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
+      legend.position = "none"
+    ) 
+
+allI6S_qPCR_byHabitat
+
+## ITS ####
+allITS_qPCR <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allITS_qPCR.rds")
+max(allITS_qPCR$ITScopies)
+min(allITS_qPCR$ITScopies)
+allITS_qPCR_byHabitat <- ggplot(
+  data = allITS_qPCR,
+  aes(x = HabitatAir, y = ITScopies, fill = HabitatAir)
+) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) + 
+  geom_boxplot(outlier.shape = NA) +
+  # jittered points in black
+  geom_jitter(
+    color  = "black",
+    size   = 2,
+    alpha  = 0.9,
+    width  = 0.25,
+    height = 0
+  ) +
+  # log10 y axis 
+  scale_y_continuous(
+    trans  = "log10",
+    name   = "ITS copies (fungi)",
+    breaks = c(1e4, 1e5, 1e6, 1e7, 1e8),
+    limits = c(1e4, 1e8)
+  ) +
+  scale_fill_manual(
+    values = c(
+      forest  = "forestgreen",
+      savanna = "goldenrod"
+    )
+  ) +
+  scale_x_discrete(name = NULL,
+                   labels = c( #change x-axis labels
+                     forest = "forested matrix",
+                     savanna = "open patch"
+                   )) +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    legend.position = "none"
+  ) 
+
+allITS_qPCR_byHabitat
+
+
+# Ordinations
+I6S_habitatAirOrd <- readRDS("~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_habitatAirOrd_10-17-25.rds")
+I6S_habitatAirOrd2 <- I6S_habitatAirOrd +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    legend.position = "none"
+  )
+I6S_habitatAirOrd2
+  
+ITS_habitatAirOrd <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_habitatAirOrd_10-17-25.rds")
+ITS_habitatAirOrd2 <- ITS_habitatAirOrd +
+  theme(
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    legend.position = "none"
+  )
+ITS_habitatAirOrd2
+
+quartz()
+grid.arrange(allITS_qPCR_byHabitat, allI6S_qPCR_byHabitat, ITS_habitatAirOrd2, I6S_habitatAirOrd2, nrow=2)
+
+
 
