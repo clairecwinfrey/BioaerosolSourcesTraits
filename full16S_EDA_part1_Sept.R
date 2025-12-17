@@ -353,6 +353,9 @@ all16S_20hrs.ps <- prune_samples(goodNames, all16S_trimmed1.ps)
 # View(as.data.frame(as.matrix(sample_data(all16S_20hrs.ps)))) #looks good!
 length(which(sample_data(all16S_20hrs.ps)$sampleType == "air")) #110 samples still
 
+# Saved Dec. 17, 2025 (so that I could scrape the metadata to make NCBI thingy)
+# saveRDS(all16S_20hrs.ps, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allI6S_20hrs_phyloseq.rds")
+
 # What are the names of all of the air samples (including ALL controls) that were sampled at least 20 hours?
 airAllIndex <- grep(pattern= "air", x= rownames(as.data.frame(as.matrix(sample_data(all16S_20hrs.ps))))) #get all of the rownames that contain "air"
 onlyGoodAirNames <- rownames(as.data.frame(as.matrix(sample_data(all16S_20hrs.ps))))[airAllIndex] #yes, this pulled out everything with air in the title

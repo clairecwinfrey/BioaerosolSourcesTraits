@@ -78,6 +78,8 @@ phylloMeta1[which(phylloMeta1$Genus == "Dichanthelium"),] #there is species = vi
 # only villosissimum gave the error
 phylloMeta1$Genus[which(phylloMeta1$Species == "villosissimum")] <- "Panicum"
 phylloMeta1$Genus[which(phylloMeta1$Species == "villosissimum")] #Great it is now Panicum!
+# d. Andropogon unknown needs to be Andropogon sp.
+phylloMeta1$Species[which(phylloMeta1$Genus == "Andropogon")] <- rep("sp.", time= length(which(phylloMeta1$Genus == "Andropogon")))
 
 # 2. Add in other columns needed for the NCBI metadata that are different from row to row,
 # Make a genus and species column for "host" as the plant it was sampled from
@@ -94,6 +96,7 @@ phylloMeta_ITS$sampleName <- paste("ITS", phylloMeta_ITS$SampleLongerID, sep = "
 # Get rid of "EU" because it's too long
 phylloMeta_ITS$sampleName <- gsub(x=phylloMeta_ITS$sampleName, pattern = "EU_", replacement = "")
 phylloMeta_ITS$sampleName # looks good!
+
 # December 16, 2025
 # write.csv(phylloMeta_ITS, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/phylloMeta_ITS.csv")
 
@@ -111,4 +114,182 @@ phyllo16Smeta2$sampleName <- gsub(x= phyllo16Smeta2$sampleName, pattern = "ITS_"
 phylloMeta_16S <- phyllo16Smeta2
 # December 16, 2025
 # write.csv(phylloMeta_16S, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/phylloMeta_16S.csv")
+
+######################
+# CONTROLS
+# ITS
+allITS_20hrs.ps <- readRDS(file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allITS_20hrs_phyloseq.rds")
+ITS_ctrls.ps <- subset_samples(physeq= allITS_20hrs.ps, isControl == "control")
+ITSctrlMeta <- as.data.frame(as.matrix(sample_data(ITS_ctrls.ps)))
+ITSctrlMeta
+colnames(ITSctrlMeta)
+# Get a smaller dataframe
+ITSctrlMeta <- ITSctrlMeta[,colnames(ITSctrlMeta) %in% c("EU", "DateSetOut", "sampleType", "SampleDescription", "DateDNAextracted",
+                             "Sample.ID", "SampleLongerID", "isControl" )]
+# View(ITSctrlMeta)
+# Drop the soil-associated controls (since these were uploaded with soil data)
+ITSctrlMeta <- ITSctrlMeta[-which(ITSctrlMeta$sampleType %in% c("soil_ExtBlank", "soilExtControlWater")),]
+unique(ITSctrlMeta$sampleType) # [1] "fieldControl"           "washBufferControl"      "kitome"                 "PCRcontrol"            
+# [5] "phyllo_NegFieldControl" "phyllo_ExtBlank"        "PCR_NegControl"  
+# All of these are good! PCR control is actually a PCR negative control, but for air-associated samples
+
+# Continue to clean up
+# a. Make rownames into column
+ITSctrlMeta <- ITSctrlMeta %>% 
+  rownames_to_column("var" = "sampleName")
+ITSctrlMeta$sampleName #all of these look fine!
+# b. Make all of the field controls descriptions formatted the same way
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleName == "air_ITS_101")] <- "field control 7/8/22"
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleType %in% "fieldControl")] #almost looks good!
+# Remove open parentheses
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleType %in% "fieldControl")] <- gsub(x= ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleType %in% "fieldControl")],
+                                                                                         pattern = "\\(", replacement = "")
+# Remove close parentheses
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleType %in% "fieldControl")] <- gsub(x= ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleType %in% "fieldControl")],
+                                                                                         pattern = "\\)", replacement = "")
+# Get rid of "DateSetOut" and "DateDNAextracted" 
+ITSctrlMeta <- ITSctrlMeta[,-which(colnames(ITSctrlMeta) %in% c("DateSetOut", "DateDNAextracted", "Sample.ID", "isControl"))]
+# View(ITSctrlMeta)
+
+# Find whichever rows have something in SampleLongerID and put this in the SampleDescription (which are all blank for these controls)
+ITSsampleLongIDindex <- which(!is.na(ITSctrlMeta$SampleLongerID))
+ITSctrlMeta$SampleLongerID[ITSsampleLongIDindex] #as expected
+ITSctrlMeta$SampleDescription[ITSsampleLongIDindex] #shows nothing there, as expected
+ITSctrlMeta$SampleDescription[ITSsampleLongIDindex] <- ITSctrlMeta$SampleLongerID[ITSsampleLongIDindex]
+# View(ITSctrlMeta) #confirms this looks good so drop that column
+ITSctrlMeta <- ITSctrlMeta[,-which(colnames(ITSctrlMeta) %in% c("SampleLongerID"))]
+
+# Add in description for air_ITS_PCR_NTC_2, currently the only one without a description
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleName == "air_ITS_PCR_NTC_2")] <- "air PCR negative control 2"
+
+# Make this described like the others to be "blank" instead of control
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleName == "air_ITS_102")]
+ITSctrlMeta$SampleDescription[which(ITSctrlMeta$sampleName == "air_ITS_102")] <- "wash blank #7"
+
+# Make those without EU info have "not applicable" for EU
+ITSctrlMeta$EU[which(is.na(ITSctrlMeta$EU))] <- "not applicable"
+
+# To make the terminology more like the paper, make some changes
+ITSctrlMeta$sampleType[which(ITSctrlMeta$sampleType == "kitome")] <- "air_ExtBlank" #change "kitome" to "extraction blank"
+ITSctrlMeta$sampleType[which(ITSctrlMeta$sampleType == "PCRcontrol")] <- "air_PCR_NegControl"
+ITSctrlMeta$sampleType[which(ITSctrlMeta$sampleType == "PCR_NegControl")] <- "phyllo_PCR_NegControl"
+ITSctrlMeta$sampleType[which(ITSctrlMeta$sampleType == "fieldControl")] <- "air_fieldControl"
+# View(ITSctrlMeta)
+
+# Make all kitome in description "air DNA extraction blank"
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = "kitome", 
+                                      replacement= "air DNA extraction blank")
+
+# Make all kitome in description "air DNA extraction blank"
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = "NegPhylloCtrl", 
+                                      replacement= "phylloNegFieldCtrl")
+
+# Make all ExtBlank_ in description "phyllo DNA extraction blank"
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = "ExtBlank_", 
+                                      replacement= "phyllo DNA extraction blank")
+
+# Remove all # in sampleDescription
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = "\\#", 
+                                      replacement= "")
+
+# Remove all blank space in sampleDescription, make "_"
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = " ", 
+                                      replacement= "_")
+
+# Make any double underscores one
+ITSctrlMeta$SampleDescription <- gsub(x=ITSctrlMeta$SampleDescription, pattern = "__", 
+                                      replacement= "_")
+# View(ITSctrlMeta)
+
+# Export
+# Dec 17, 2025
+# write.csv(ITSctrlMeta, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/ITSctrlMeta.csv")
+
+##########################
+# I6S
+allI6S_20hrs.ps <- readRDS(file= "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/allI6S_20hrs_phyloseq.rds")
+I6S_ctrls.ps <- subset_samples(physeq= allI6S_20hrs.ps, isControl == "control")
+I6SctrlMeta <- as.data.frame(as.matrix(sample_data(I6S_ctrls.ps)))
+I6SctrlMeta
+colnames(I6SctrlMeta)
+# Get a smaller dataframe
+I6SctrlMeta <- I6SctrlMeta[,colnames(I6SctrlMeta) %in% c("EU", "DateSetOut", "sampleType", "SampleDescription", "DateDNAextracted",
+                                                         "Sample.ID", "SampleLongerID", "isControl" )]
+# View(I6SctrlMeta)
+# Drop the soil-associated controls (since these were uploaded with soil data)
+I6SctrlMeta <- I6SctrlMeta[-which(I6SctrlMeta$sampleType %in% c("soil_ExtBlank", "soilExtControlWater")),]
+unique(I6SctrlMeta$sampleType) # [1] "fieldControl"           "washBufferControl"      "kitome"                 "PCRcontrol"            
+# [5] "phyllo_NegFieldControl" "phyllo_ExtBlank"  
+# All of these are good! PCR control is actually a PCR negative control, but for air-associated samples
+
+# Continue to clean up
+# a. Make rownames into column
+I6SctrlMeta <- I6SctrlMeta %>% 
+  rownames_to_column("var" = "sampleName")
+I6SctrlMeta$sampleName #all of these look fine!
+# b. Make all of the field controls descriptions formatted the same way
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleName == "air_16S_101")] <- "field control 7/8/22"
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleType %in% "fieldControl")] #almost looks good!
+# Remove open parentheses
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleType %in% "fieldControl")] <- gsub(x= I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleType %in% "fieldControl")],
+                                                                                         pattern = "\\(", replacement = "")
+# Remove close parentheses
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleType %in% "fieldControl")] <- gsub(x= I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleType %in% "fieldControl")],
+                                                                                         pattern = "\\)", replacement = "")
+# Get rid of "DateSetOut" and "DateDNAextracted" 
+I6SctrlMeta <- I6SctrlMeta[,-which(colnames(I6SctrlMeta) %in% c("DateSetOut", "DateDNAextracted", "Sample.ID", "isControl"))]
+# View(I6SctrlMeta)
+
+# Find whichever rows have something in SampleLongerID and put this in the SampleDescription (which are all blank for these controls)
+I6SsampleLongIDindex <- which(!is.na(I6SctrlMeta$SampleLongerID))
+I6SctrlMeta$SampleLongerID[I6SsampleLongIDindex] #as expected
+I6SctrlMeta$SampleDescription[I6SsampleLongIDindex] #shows nothing there, as expected
+I6SctrlMeta$SampleDescription[I6SsampleLongIDindex] <- I6SctrlMeta$SampleLongerID[I6SsampleLongIDindex]
+# View(I6SctrlMeta) #confirms this looks good so drop that column
+I6SctrlMeta <- I6SctrlMeta[,-which(colnames(I6SctrlMeta) %in% c("SampleLongerID"))]
+
+# Add in description for air_16S_PCR_NTC_1_H12 and air_16S_PCR_NTC_2, currently the only ones without a description
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleName == "air_16S_PCR_NTC_1_H12")] <- "air PCR negative control 1"
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleName == "air_16S_PCR_NTC_2")] <- "air PCR negative control 2"
+
+# Make this described like the others to be "blank" instead of control
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleName == "air_16S_102")]
+I6SctrlMeta$SampleDescription[which(I6SctrlMeta$sampleName == "air_16S_102")] <- "wash blank #7"
+
+# Make those without EU info have "not applicable" for EU
+I6SctrlMeta$EU[which(is.na(I6SctrlMeta$EU))] <- "not applicable"
+
+# To make the terminology more like the paper, make some changes
+I6SctrlMeta$sampleType[which(I6SctrlMeta$sampleType == "kitome")] <- "air_ExtBlank" #change "kitome" to "extraction blank"
+I6SctrlMeta$sampleType[which(I6SctrlMeta$sampleType == "fieldControl")] <- "air_fieldControl"
+# View(I6SctrlMeta)
+
+# Make all kitome in description "air DNA extraction blank"
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = "kitome", 
+                                      replacement= "air DNA extraction blank")
+
+# Make all kitome in description "air DNA extraction blank"
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = "NegPhylloCtrl", 
+                                      replacement= "phylloNegFieldCtrl")
+
+# Make all ExtBlank_ in description "phyllo DNA extraction blank"
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = "ExtBlank_", 
+                                      replacement= "phyllo DNA extraction blank")
+
+# Remove all # in sampleDescription
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = "\\#", 
+                                      replacement= "")
+
+# Remove all blank space in sampleDescription, make "_"
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = " ", 
+                                      replacement= "_")
+
+# Make any double underscores one
+I6SctrlMeta$SampleDescription <- gsub(x=I6SctrlMeta$SampleDescription, pattern = "__", 
+                                      replacement= "_")
+# View(I6SctrlMeta)
+
+# Export
+# Dec 17, 2025
+# write.csv(I6SctrlMeta, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/I6SctrlMeta.csv")
 
