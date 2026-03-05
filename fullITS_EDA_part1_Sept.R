@@ -112,7 +112,7 @@ allITS_tax_sep <- allITS_tax_sep %>% #make ASV_ID column the rownames to make it
 head(allITS_tax_sep)
 
 # 3. Sample metadata--
-all_ITS_Metadata <- read.csv("Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/aeroAllMetadat_Apr20_2023.csv", row.names=1) #made in ITS_metadataAndMappingFileSetUp.R
+all_ITS_Metadata <- read.csv("~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/aeroAllMetadat_Apr20_2023.csv", row.names=1) #made in ITS_metadataAndMappingFileSetUp.R
 head(all_ITS_Metadata)
 # View(all_ITS_Metadata)
 colnames(all_ITS_Metadata) #first column in sampleNumber, EU, TransectMeter, DateSetOut
