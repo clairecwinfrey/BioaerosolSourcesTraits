@@ -16,7 +16,6 @@
 #### i.  Separate Wilcoxon signed-rank tests to look for differences in the proportion of foliar surface or soil 
 # indicator taxa in forested matrix or open patch samples
 
-
 #######################################
 #             SCRIPT SET UP
 #######################################
@@ -844,6 +843,7 @@ ITS_topAirTable_forSupp$ASV_name <- as.character(ITS_topAirTable_forSupp$ASV_nam
 # View(ITS_topAirTable_forSupp)
 
 # write.csv(ITS_topAirTable_forSupp, file = "Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_topAirTable_forSupp_09-28-2025.csv") #written September 28, 2025
+saveRDS(ITS_topAirTable_forSupp, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/ITS_topAir_24March2026.rds")
 
 ##############
 #  A FEW EXTRA CALCULATIONS FOR MANUSCRIPT

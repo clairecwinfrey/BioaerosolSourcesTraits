@@ -600,7 +600,7 @@ which(is.na(ANCOMspore$spore4cats)==FALSE)
 ANCOMspore <- ANCOMspore[which(is.na(ANCOMspore$spore4cats)==FALSE),]
 # View(ANCOMspore)
 nrow(ANCOMspore) #111 had data
-111/220*100 #55.5% matches percentage reported that i calculated in bacteriaSporesAndPigment
+111/220*100 #55.5% matches percentage reported that I calculated in bacteriaSporesAndPigment
 
 # Split these into separate air and phyllosphere dataframes
 ANCOMspore_air <- ANCOMspore[which(ANCOMspore$ANCOMcat == "bioaerosol"),]
@@ -703,6 +703,35 @@ sporeAirPhyllo_barPlot_LegBott <- ggplot(sporeLeafAir_df) +
 
 # October 15, 2025
 # saveRDS(sporeAirPhyllo_barPlot_LegBott, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/sporeAirFoliar_barPlot_10-15-2025.rds")
+
+# INVESTIGATION OF TOP TAXA IN BIOAEROSOLS AND SPORULATION ABILITY
+# Are some of the top taxa in Table S5 that are found in bioaerosols but not on foliar surfaces, spore-formers?
+# View(ANCOMspore_air)
+# Note that ASV 126, Deinococcus, had no sporulation data
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_10"),] #ASV_10, Staphylococcus, not spore former as expected
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_48"),] #48, Cystobacter, IS A SPORE FORMER
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_129"),] #129, Ligilactobacillus, is not a spore former
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_142"),] #not found
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_239"),] #Anoxybacillus is possible. Low in soil, not on foliar surfaces
+ANCOMspore_air[which(ANCOMspore_air$ASV_name == "ASV_198"),] #not found
+# "ASV_1728" "ASV_1855" "ASV_2180"
+ANCOMspore_air$ASV_name[which(ANCOMspore_air$Genus == "[Ruminococcus] torques group")] #all of these are "possible" spore formerand are bioaerosol
+ANCOMspore_air$ASV_name[which(ANCOMspore_air$Genus == "Pseudomonas")] #all of these are "possible" spore formers
+
+# ADD SPORULATION DATA TO TABLE S5;
+I6S_topAirTable_forSupp <- readRDS(file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_topAirTable_03-24-26.rds")
+
+colnames(ANCOMspore_air)
+# Make a copy and add back "ASV_" for merging
+I6S_topAirTable_forSupp2 <- I6S_topAirTable_forSupp
+I6S_topAirTable_forSupp2$ASV_name <- paste0("ASV_", I6S_topAirTable_forSupp2$ASV_name)
+top16S_plusANCOMspores <- left_join(I6S_topAirTable_forSupp2, ANCOMspore_air[,c(1, 148,149, 156, 157, 158)], by = "ASV_name")
+# View(top16S_plusANCOMspores)
+
+top16S_plusANCOMspores[which(top16S_plusANCOMspores$Genus == "Pseudomonas"),]
+
+# Look at all that are only in bioaerosols
+View(top16S_plusANCOMspores[intersect(which(top16S_plusANCOMspores$SoilPercentOccupancy == 0.0), which(top16S_plusANCOMspores$FoliarPercentOccupancy == 0.0)),])
 
 #### PERFORM chi-squared tests to SEE IF AIR AND PHYLLOSPHERE VARY IN SPORULATION 
 # (TESTED NO AGAINST PROPORTION OF YES/POTENTIALLY)
@@ -854,7 +883,6 @@ pigmentFisherTest
 #  0.8391869 
 
 ############# SPORE SIZE NOW IN SCRIPT sporeSizeSept5.R ########
-
 
 ########################################################################
 #   VI. FUNGAL FRUITING BODIES

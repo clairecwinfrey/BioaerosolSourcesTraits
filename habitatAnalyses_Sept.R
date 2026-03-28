@@ -229,7 +229,7 @@ air16S_classDFlong <- merge(airOnly_16Sr_class.glomLong, airOnly_16Sr_class.glom
 head(air16S_classDFlong) #looks good!
 unique(air16S_classDFlong$ASV_name) #73 unique, as before
 unique(air16S_classDFlong$Class)
-# Add in habitat data
+# Add in sample names
 air16S_classMetaDat <- as.data.frame(sample_data(airOnly_16Sr_class.glom))
 rownames(air16S_classMetaDat)
 air16S_classMetaDat_2 <- rownames_to_column(air16S_classMetaDat, var= "sampleName")

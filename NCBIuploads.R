@@ -560,26 +560,39 @@ I6SphylloBioSamps_df <- merge(I6SphylloBioSamps[,colnames(I6SphylloBioSamps) %in
 # and it's also possible that not all of them are even in these, but hopefully 
 # they are!
 ITSCtrlsBioSamps$sample_name 
-head(bioaersolITSfileNames)
-head(phylloITSfileNames)
+head(bioaersolITSfileNames) #some controls likely here
+head(phylloITSfileNames) #some controls here
 
 # Make library ID column
+# Has biosample by biosample accession and bioproject details 
 ITSCtrlsBioSamps$library_ID <- paste0(ITSCtrlsBioSamps$sample_name, "_", "blank") #may want to add in bioaerosol or phyllo control later
 # Make "Title" column
 ITSCtrlsBioSamps$title <- paste0("ITS region rRNA of blank:", ITSCtrlsBioSamps$sample_name)
 
 # Look at previously made dataframes that contain these blank sequence file locations
-head(bioaersolITSfileNames_clean)
-head(phylloITSfileNames_clean)
-intersect(bioaersolITSfileNames_clean$sample_name, phylloITSfileNames_clean$sample_name) #none shared so can rbind
+# (Since controls spread over bioaersol and phyllosphere)
+ITSCtrlsBioSamps$sample_name #air before air-associated samples
+head(bioaersolITSfileNames_clean) #no air before air-associated blanks, which is needed for merge!
+head(phylloITSfileNames_clean) #has phyllo_ before later sample_name, which is good
+BA_ITSnames_forCtrls <- bioaersolITSfileNames_clean #make a copy for adding "air_" and then merging
+# Add "air_" prefix to those blank sample names that don't already have it (i.e., everything but PCR ctrls)
+BA_ITSnames_forCtrls$sample_name[which(grepl(x=BA_ITSnames_forCtrls$sample_name, pattern = "air_")==FALSE)] <-
+  paste0("air_", BA_ITSnames_forCtrls$sample_name[which(grepl(x=BA_ITSnames_forCtrls$sample_name, pattern = "air_")==FALSE)])
+BA_ITSnames_forCtrls$sample_name #looks good!
+intersect(BA_ITSnames_forCtrls$sample_name, ITSCtrlsBioSamps$sample_name) #great, many of these overlap now, as expected!
+# Before merging, double check no repeated sample_names between phyllosphere and bioaerosol sample_names, as expected
+intersect(BA_ITSnames_forCtrls$sample_name, phylloITSfileNames_clean$sample_name) #none shared so can rbind
 # Rbind these for left_joining later
-allITSfileNames <- rbind(bioaersolITSfileNames_clean, phylloITSfileNames_clean)
-#View(allITSfileNames)
+allITSfileNames <- rbind(BA_ITSnames_forCtrls, phylloITSfileNames_clean)
+# View(allITSfileNames)
+dim(allITSfileNames) #234 samples. 
+head(allITSfileNames) #columns are sample_name, R1, and R2
 
-# Merge with ITSCtrlsBioSamps
-sort(colnames(ITSCtrlsBioSamps))
-ITSCtrlsBioSamps[,colnames(ITSCtrlsBioSamps) %in% colsOfInterest]
-ITSCtrlsBioSamps_df <- left_join(ITSCtrlsBioSamps[,colnames(ITSCtrlsBioSamps) %in% colsOfInterest], allITSfileNames, by = "sample_name")
+# Merge with ITSCtrlsBioSamps, which is biosample data for all ITS controls
+colnames(ITSCtrlsBioSamps)
+setdiff(ITSCtrlsBioSamps$sample_name, allITSfileNames$sample_name) #shows all BioSamps sample_names within all ITSfileNames, exactly as I want!
+ITSCtrlsBioSamps[,colnames(ITSCtrlsBioSamps) %in% c("controltype",colsOfInterest)] #only keep relevant columns so things don't get too unwiedly
+ITSCtrlsBioSamps_df <- left_join(ITSCtrlsBioSamps[,colnames(ITSCtrlsBioSamps) %in% c("controltype",colsOfInterest)], allITSfileNames, by = "sample_name")
 # View(ITSCtrlsBioSamps_df)
 
 # Get indices and then add in details about what kind of control it is
@@ -633,5 +646,250 @@ airwashBufferControlIndex_ITS <- which(ITSCtrlsBioSamps_df$sample_name %in% airW
 ITSCtrlsBioSamps_df[airwashBufferControlIndex_ITS,]
 ITSCtrlsBioSamps_df$title[airwashBufferControlIndex_ITS] <- gsub(x=ITSCtrlsBioSamps_df$title[airwashBufferControlIndex_ITS], pattern = "of blank", replacement = "of bioaerosol wash buffer blank")
 
-# 10. Last remaining phyllosphere samples?? Which are these?
+# 10. Last remaining phyllosphere samples. Grab extra info for the titles from the control type
+# The ones missing data are phyllo_NegFieldControl and phyllo_ExtBlank
+#View(ctrlsOnlyMetaDat)
+# View(ITSCtrlsBioSamps_df)
+colsLastITScontrols <- which(colnames(ITSCtrlsBioSamps_df) %in% c("sample_name", "controltype", "title")==TRUE)
+ITSCtrlsBioSamps_df[ITSCtrlsBioSamps_df$controltype %in% c("phyllo_NegFieldControl", "phyllo_ExtBlank"), colsLastITScontrols] #looks good!
+# Now pull out and replace with  foliar surface field blanks
+ITSCtrlsBioSamps_df$title[ITSCtrlsBioSamps_df$controltype %in% "phyllo_NegFieldControl"] <- 
+  gsub(x=ITSCtrlsBioSamps_df$title[ITSCtrlsBioSamps_df$controltype %in% "phyllo_NegFieldControl"],
+       pattern= "of blank:", replacement= "of foliar surface field blank:")
+
+# Now pull out and replace with  phyllo_ExtBlank blanks
+ITSCtrlsBioSamps_df$title[ITSCtrlsBioSamps_df$controltype %in% "phyllo_ExtBlank"] <- 
+  gsub(x=ITSCtrlsBioSamps_df$title[ITSCtrlsBioSamps_df$controltype %in% "phyllo_ExtBlank"],
+       pattern= "of blank:", replacement= "of foliar surface DNA extraction blank:")
+
+# View(ITSCtrlsBioSamps_df) #looks good!
+# ONE FINAL CHECK OF SAMPLE NUMBERS
+colnames(ITSCtrlsBioSamps_df)
+ITSctrlCheck <- ITSCtrlsBioSamps_df[,c(colnames(ITSCtrlsBioSamps_df) %in% c("sample_name", "title", "R1", "R2"))]
+# View(ITSctrlCheck)
+ITSctrlsNumCheck1 <- str_extract(ITSctrlCheck$sample_name, "(?<=_)[0-9]{1,3}")
+ITSctrlsNumCheck2 <- str_extract(ITSctrlCheck$title, "(?<=_)[0-9]{1,3}")
+ITSctrlsNumCheck3 <- str_extract(ITSctrlCheck$R1, "(?<=_)[0-9]{1,3}")
+ITSctrlsNumCheck4 <-str_extract(ITSctrlCheck$R2, "(?<=_)[0-9]{1,3}")
+# True so all my matching and such worked
+all(ITSctrlsNumCheck1 == ITSctrlsNumCheck2 & ITSctrlsNumCheck1 == ITSctrlsNumCheck3 & ITSctrlsNumCheck1 == ITSctrlsNumCheck4, na.rm = FALSE)
+
+########### VI. 16S CONTROLS! ########### 
+# View(I6SCtrlsBioSamps)
+# These samples are spread across bioaersol16SfileNames and phyllo16SfileNames,
+# and it's also possible that not all of them are even in these, but hopefully 
+# they are!
+I6SCtrlsBioSamps$sample_name 
+head(bioaersol16SfileNames) #some controls likely here
+head(phyllo16SfileNames) #some controls here
+
+# Make library ID column
+# Has biosample by biosample accession and bioproject details 
+I6SCtrlsBioSamps$library_ID <- paste0(I6SCtrlsBioSamps$sample_name, "_", "blank") #may want to add in bioaerosol or phyllo control later
+# Make "Title" column
+I6SCtrlsBioSamps$title <- paste0("16S region rRNA of blank:", I6SCtrlsBioSamps$sample_name)
+
+# Look at previously made dataframes that contain these blank sequence file locations
+# (Since controls spread over bioaersol and phyllosphere)
+I6SCtrlsBioSamps$sample_name #air before air-associated samples
+head(bioaersol16SfileNames_clean) #no air before air-associated blanks, which is needed for merge!
+head(phyllo16SfileNames_clean) #has phyllo_ before later sample_name, which is good
+BA_16Snames_forCtrls <- bioaersol16SfileNames_clean #make a copy for adding "air_" and then merging
+# Add "air_" prefix to those blank sample names that don't already have it (i.e., everything but PCR ctrls)
+BA_16Snames_forCtrls$sample_name[which(grepl(x=BA_16Snames_forCtrls$sample_name, pattern = "air_")==FALSE)] <-
+  paste0("air_", BA_16Snames_forCtrls$sample_name[which(grepl(x=BA_16Snames_forCtrls$sample_name, pattern = "air_")==FALSE)])
+BA_16Snames_forCtrls$sample_name #looks good!
+intersect(BA_16Snames_forCtrls$sample_name, I6SCtrlsBioSamps$sample_name) #great, many of these overlap now, as expected!
+# Before merging, double check no repeated sample_names between phyllosphere and bioaerosol sample_names, as expected
+intersect(BA_16Snames_forCtrls$sample_name, phyllo16SfileNames_clean$sample_name) #none shared so can rbind
+# Rbind these for left_joining later
+all16SfileNames <- rbind(BA_16Snames_forCtrls, phyllo16SfileNames_clean)
+# View(all16SfileNames)
+dim(all16SfileNames) #234 samples. 
+head(all16SfileNames) #columns are sample_name, R1, and R2
+
+# Merge with I6SCtrlsBioSamps, which is biosample data for all 16S controls
+colnames(I6SCtrlsBioSamps)
+setdiff(I6SCtrlsBioSamps$sample_name, all16SfileNames$sample_name) #shows all BioSamps sample_names within all 16SfileNames, exactly as I want!
+I6SCtrlsBioSamps[,colnames(I6SCtrlsBioSamps) %in% c("controltype",colsOfInterest)] #only keep relevant columns so things don't get too unwiedly
+I6SCtrlsBioSamps_df <- left_join(I6SCtrlsBioSamps[,colnames(I6SCtrlsBioSamps) %in% c("controltype",colsOfInterest)], all16SfileNames, by = "sample_name")
+# View(I6SCtrlsBioSamps_df)
+
+# Get indices and then add in details about what kind of control it is
+# 1. Those that have EU info and are NOT "not applicable" are field blanks 
+fieldBlanks16S_index <- which(I6SCtrlsBioSamps_df$experimentalunit != "not applicable")
+# 2. Get only the phyllo sample index
+phyllo16S_index <- which(grepl(x=I6SCtrlsBioSamps_df$sample_name, pattern= "phyllo")==TRUE)
+# 3. Get only the bioaerosol sample index
+air16S_index <- which(grepl(x=I6SCtrlsBioSamps_df$sample_name, pattern= "air")==TRUE)
+# 4. Get the indices for the PCR controls
+PCR16S_index <- which(grepl(x=I6SCtrlsBioSamps_df$sample_name, pattern= "PCR_NTC")==TRUE)
+# 5. Intersection of those with EU info and air are air field controls
+airFieldCtrlIndex_16S <- intersect(fieldBlanks16S_index, air16S_index); length(airFieldCtrlIndex_16S) #16 
+I6SCtrlsBioSamps_df[airFieldCtrlIndex_16S,]
+I6SCtrlsBioSamps_df$title[airFieldCtrlIndex_16S] <- gsub(x=I6SCtrlsBioSamps_df$title[airFieldCtrlIndex_16S], pattern = "of blank", replacement = "of bioaerosol field blank")
+I6SCtrlsBioSamps_df$title[airFieldCtrlIndex_16S]
+# 6. Intersection of PCR and phyllo are phyllo PCR controls
+phylloPCRCtrlIndex_16S <- intersect(PCR16S_index, phyllo16S_index) #0 this matches paper
+I6SCtrlsBioSamps_df[phylloPCRCtrlIndex_16S ,] #0 
+# 7. Intersection of PCR and air are air PCR controls
+airPCRCtrlIndex_16S <- intersect(PCR16S_index, air16S_index) #just two 
+I6SCtrlsBioSamps_df[airPCRCtrlIndex_16S ,]
+I6SCtrlsBioSamps_df$title[airPCRCtrlIndex_16S] <- gsub(x=I6SCtrlsBioSamps_df$title[airPCRCtrlIndex_16S], pattern = "of blank", replacement = "of bioaerosol PCR no-template control")
+I6SCtrlsBioSamps_df$title[airPCRCtrlIndex_16S]
+
+# For the extraction blanks and wash buffer blanks, will have to look at longer metadata
+# (Note that ITS info is same as 16S, hence its use below):
+# Pull out just the relevant columns for controls 
+sort(colnames(all_ITS_Metadata))
+unique(all_ITS_Metadata$sampleType)
+ctrlsOnlyMetaDat <- all_ITS_Metadata %>% 
+  select(sampleNumber, sampleType, SampleLongerID, SampleDescription) %>% 
+  filter(sampleType %in% c("kitome", "PCRcontrol", "washBufferControl", "fieldControl", "phyllo_ExtBlank",
+                           "PCR_NegControl" , "phyllo_NegFieldControl"))
+# View(ctrlsOnlyMetaDat)
+# 8. Extraction blanks for biaoerosol samples, which I called "DNA extraction blanks" in the paper
+# Note that there are 10 here
+ctrlsOnlyMetaDat[which(ctrlsOnlyMetaDat$sampleType == "kitome"),]
+airKitomeNames <- ctrlsOnlyMetaDat$sampleNumber[which(ctrlsOnlyMetaDat$sampleType == "kitome")]
+# Replace ITS with 16S (but #s are the same)
+airKitomeNames_16S <- gsub(x=airKitomeNames, pattern= "_ITS_", replacement = "_16S_")
+airKitomeIndex_16S <- which(I6SCtrlsBioSamps_df$sample_name %in% airKitomeNames_16S==TRUE) #these are the kitome samples
+length(airKitomeIndex_16S) #10
+I6SCtrlsBioSamps_df[airKitomeIndex_16S,]
+I6SCtrlsBioSamps_df$title[airKitomeIndex_16S] <- gsub(x=I6SCtrlsBioSamps_df$title[airKitomeIndex_16S], pattern = "of blank", replacement = "of bioaerosol DNA extraction blank")
+
+# 9. Wash buffer blanks for biaoerosol samples, which I called "wash buffer blanks" in the paper
+# Note that there are 10 here
+unique(ctrlsOnlyMetaDat$sampleType)
+ctrlsOnlyMetaDat[which(ctrlsOnlyMetaDat$sampleType == "washBufferControl"),]
+airWBBNames_16S <- ctrlsOnlyMetaDat$sampleNumber[which(ctrlsOnlyMetaDat$sampleType == "washBufferControl")]
+# Replace ITS with 16S (but #s are the same)
+airWBBNames_16S <- gsub(x=airWBBNames_16S, pattern= "_ITS_", replacement = "_16S_")
+length(airWBBNames_16S) #11
+airwashBufferControlIndex_16S <- which(I6SCtrlsBioSamps_df$sample_name %in% airWBBNames_16S==TRUE) #these are the washBufferControl samples
+I6SCtrlsBioSamps_df[airwashBufferControlIndex_16S,]
+I6SCtrlsBioSamps_df$title[airwashBufferControlIndex_16S] <- gsub(x=I6SCtrlsBioSamps_df$title[airwashBufferControlIndex_16S], pattern = "of blank", replacement = "of bioaerosol wash buffer blank")
+
+# 10. Last remaining phyllosphere samples. Grab extra info for the titles from the control type
+# The ones missing data are phyllo_NegFieldControl (n=3) and phyllo_ExtBlank (n=2)
+#View(ctrlsOnlyMetaDat)
+# View(I6SCtrlsBioSamps_df)
+colsLast16Scontrols <- which(colnames(I6SCtrlsBioSamps_df) %in% c("sample_name", "controltype", "title")==TRUE)
+I6SCtrlsBioSamps_df[I6SCtrlsBioSamps_df$controltype %in% c("phyllo_NegFieldControl", "phyllo_ExtBlank"), colsLast16Scontrols] #looks good!
+# Now pull out and replace with  foliar surface field blanks
+I6SCtrlsBioSamps_df$title[I6SCtrlsBioSamps_df$controltype %in% "phyllo_NegFieldControl"] <- 
+  gsub(x=I6SCtrlsBioSamps_df$title[I6SCtrlsBioSamps_df$controltype %in% "phyllo_NegFieldControl"],
+       pattern= "of blank:", replacement= "of foliar surface field blank:")
+
+# Now pull out and replace with  phyllo_ExtBlank blanks
+I6SCtrlsBioSamps_df$title[I6SCtrlsBioSamps_df$controltype %in% "phyllo_ExtBlank"] <- 
+  gsub(x=I6SCtrlsBioSamps_df$title[I6SCtrlsBioSamps_df$controltype %in% "phyllo_ExtBlank"],
+       pattern= "of blank:", replacement= "of foliar surface DNA extraction blank:")
+
+# View(I6SCtrlsBioSamps_df) #looks good!
+# ONE FINAL CHECK OF SAMPLE NUMBERS
+colnames(I6SCtrlsBioSamps_df)
+I6SctrlCheck <- I6SCtrlsBioSamps_df[,c(colnames(I6SCtrlsBioSamps_df) %in% c("sample_name", "title", "R1", "R2"))]
+# View(16SctrlCheck)
+I6SctrlsNumCheck1 <- str_match(I6SctrlCheck$sample_name, "^[^_]*_[^_]*_([0-9]{1,3})")[,2]
+I6SctrlsNumCheck1 <- I6SctrlsNumCheck1[-which(is.na(I6SctrlsNumCheck1)==TRUE)]
+I6SctrlsNumCheck2 <- str_match(I6SctrlCheck$title, "^[^_]*_[^_]*_([0-9]{1,3})")[,2] #NAs here are PCR controls
+I6SctrlsNumCheck2 <- I6SctrlsNumCheck2[-which(is.na(I6SctrlsNumCheck2)==TRUE)]
+I6SctrlsNumCheck3 <- str_match(I6SctrlCheck$R1, "16S_([0-9]{1,3})\\.f")[,2]
+I6SctrlsNumCheck3 <- I6SctrlsNumCheck3[-which(is.na(I6SctrlsNumCheck3)==TRUE)]
+I6SctrlsNumCheck4 <- str_match(I6SctrlCheck$R2, "16S_([0-9]{1,3})\\.f")[,2]
+I6SctrlsNumCheck4 <- I6SctrlsNumCheck4[-which(is.na(I6SctrlsNumCheck4)==TRUE)]
+# True so all my matching and such worked
+all(I6SctrlsNumCheck1 == I6SctrlsNumCheck2 & I6SctrlsNumCheck1 == I6SctrlsNumCheck3 & I6SctrlsNumCheck1 == I6SctrlsNumCheck4, na.rm = FALSE)
+
+########### VII. 16S CONTROLS! ########### 
+# COMBINE metadata into 2 files, one for 16S and one for ITS
+# 1. ITS
+SRAmetaColsOfInterest <- c("accession", "library_ID", "title", "R1", "R2", "bioproject_accession")
+allITS_SRAmeta <- rbind(ITSairBioSamps_df[,colnames(ITSairBioSamps_df)%in% SRAmetaColsOfInterest],
+                        ITSphylloBioSamps_df[,colnames(ITSphylloBioSamps_df)%in% SRAmetaColsOfInterest])
+allITS_SRAmeta <-rbind(allITS_SRAmeta,
+                       ITSCtrlsBioSamps_df[,colnames(ITSCtrlsBioSamps_df)%in% SRAmetaColsOfInterest])
+# View(allITS_SRAmeta)
+
+# I realized that I can automate design_description (after I already did it manually for ITS...)
+allITS_SRAmeta$design_description <- NA #initiate new column
+# 1. Bioaerosol samples
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "of bioaerosol sample")==TRUE)] <-
+  "DNA was extracted from half of a Teflon filter membrane (1.44 m^3 air sampled), then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 2. Foliar surface samples
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "of foliar surface sample:")==TRUE)] <-
+  "DNA was extracted from solution used to wash surface of plant leaves and blades, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 3. Bioaerosol field blank
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "bioaerosol field blank:")==TRUE)] <-
+  "To test for contamination at time of sampling, DNA was extracted from Teflon filters put for 5 minutes into cleaned sampler, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 4. Foliar surface field blank
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "foliar surface field blank:")==TRUE)] <-
+  "To test for contamination introduced at time of sampling, DNA was extracted from foliar surface wash solution without sample, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 5. Bioaerosol wash buffer blank
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "bioaerosol wash buffer blank:")==TRUE)] <-
+  "To test for contamination introduced during filter treatment proceeding DNA extraction, DNA was extracted from filter wash buffer solution without sample, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 6. Bioaerosol extraction blank
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "bioaerosol DNA extraction blank:")==TRUE)] <-
+  "Extraction blank created by performing DNA extraction protocol without adding sample material, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 7. Foliar surface extraction blank
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "foliar surface DNA extraction blank:")==TRUE)] <-
+  "Extraction blank created by performing DNA extraction protocol without adding sample material, then the ITS region was amplified using primers ITS1-F and ITS2-R"
+# 8. Bioaerosol PCR NTC
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "bioaerosol PCR no-template control:")==TRUE)] <-
+  "PCR no template control included alongside library preparation of bioaerosol samples. The ITS region was amplified using primers ITS1-F and ITS2-R"
+# 9. Foliar surface PCR NTC 
+allITS_SRAmeta$design_description[which(grepl(x=allITS_SRAmeta$title, pattern = "foliar surface PCR no-template control:")==TRUE)] <-
+  "PCR no template control included alongside library preparation of bioaerosol samples. The ITS region was amplified using primers ITS1-F and ITS2-R"
+
+# txt file written March 13, 2026
+# write_delim(allITS_SRAmeta, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/allITS_SRAmeta.txt")
+# 2. 16S
+all16S_SRAmeta <- rbind(I6SairBioSamps_df[,colnames(I6SairBioSamps_df)%in% SRAmetaColsOfInterest],
+                        I6SphylloBioSamps_df[,colnames(I6SphylloBioSamps_df)%in% SRAmetaColsOfInterest])
+all16S_SRAmeta <-rbind(all16S_SRAmeta,
+                       I6SCtrlsBioSamps_df[,colnames(I6SCtrlsBioSamps_df)%in% SRAmetaColsOfInterest])
+# View(all16S_SRAmeta)
+
+# I realized that I can automate design_description (after I already did it manually for ITS...)
+all16S_SRAmeta$design_description <- NA #initiate new column
+# 1. Bioaerosol samples
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S rRNA gene of bioaerosol sample")==TRUE)] <-
+  "DNA was extracted from half of a Teflon filter membrane (1.44 m^3 air sampled), then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 2. Foliar surface samples
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S region rRNA of foliar surface sample:")==TRUE)] <-
+"DNA was extracted from solution used to wash surface of plant leaves and blades, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 3. Bioaerosol field blank
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "rRNA of bioaerosol field blank:")==TRUE)] <-
+  "To test for contamination at time of sampling, DNA was extracted from Teflon filters put for 5 minutes into cleaned sampler, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 4. Foliar surface field blank
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S region rRNA of foliar surface field blank:")==TRUE)] <-
+  "To test for contamination introduced at time of sampling, DNA was extracted from foliar surface wash solution without sample, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 5. Bioaerosol wash buffer blank
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S region rRNA of bioaerosol wash buffer blank:")==TRUE)] <-
+  "To test for contamination introduced during filter treatment proceeding DNA extraction, DNA was extracted from filter wash buffer solution without sample, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 6. Bioaerosol extraction blank
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S region rRNA of bioaerosol DNA extraction blank:")==TRUE)] <-
+  "Extraction blank created by performing DNA extraction protocol without adding sample material, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 7. Foliar surface extraction blank
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "16S region rRNA of foliar surface DNA extraction blank:")==TRUE)] <-
+  "Extraction blank created by performing DNA extraction protocol without adding sample material, then the 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 8. Bioaerosol PCR NTC
+all16S_SRAmeta$design_description[which(grepl(x=all16S_SRAmeta$title, pattern = "bioaerosol PCR no-template control:")==TRUE)] <-
+  "PCR no template control included alongside library preparation of bioaerosol samples. The 16S rRNA gene region was amplified using primers 515-F and 806-R"
+# 9. Foliar surface PCR NTC -- none had reads off machine!
+# 10. Remove sample with only reverse sequence (air_16S_PCR_NTC_2_blank)
+all16S_SRAmeta <- all16S_SRAmeta[-which(is.na(all16S_SRAmeta$R1)==TRUE),]
+which(is.na(all16S_SRAmeta$R1)==TRUE) #cleaned!
+
+# View(all16S_SRAmeta)
+# Txt file written March 15, 2026 (no csv since I now use commas in description)
+# write_delim(all16S_SRAmeta, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/all16S_SRAmeta.txt")
+
+# Finally, write text file that has all the names of the forward and reverse file names for all samples
+allFileNames <- c(all16S_SRAmeta$R1, all16S_SRAmeta$R2, allITS_SRAmeta$R1, allITS_SRAmeta$R2)
+head(allFileNames)
+str(allFileNames)
+writeLines(allFileNames, "~/Desktop/CU_Research/SRS_Aeromicrobiome/BioinformaticsAndMetadata/NCBIuploadsAndDataSheets/allFileNames.txt")
 

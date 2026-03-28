@@ -839,6 +839,7 @@ I6S_topAirTable_forSupp$ASV_name <- as.character(I6S_topAirTable_forSupp$ASV_nam
 # View(I6S_topAirTable_forSupp)
 
 # write.csv(I6S_topAirTable_forSupp, file = "Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_topAirTable_forSupp_09-23-2025.csv") #written September 23, 2025
+# saveRDS(I6S_topAirTable_forSupp, file = "~/Desktop/CU_Research/SRS_Aeromicrobiome/rObjectsSaved/MS_figures/I6S_topAirTable_03-24-26.rds")
 
 ##############
 #  A FEW EXTRA CALCULATIONS FOR MANUSCRIPT
