@@ -1,6 +1,6 @@
 # BioaerosolSourcesTraits
 
-Scripts in order of processing for bacteria and fungal datasets, grouped by theme:
+Scripts in order of processing for bacteria and fungal datasets:
 
 1. bioinformatics_16S.R -- processing of raw 16S rRNA sequences. Mostly follows tutorial found at https://github.com/fiererlab/dada2_fiererlab and on B. Callahan (author of dada2) website.
 2. bioinformatics_final_ITS.R -- processing of raw ITS region sequences. Nearly identical pipeline to 16S above, but with some steps modified to reflect ITS primers and sequences
